@@ -3,10 +3,11 @@ import { Layout } from './components/Layout.js';
 import { Home } from './pages/Home.js';
 import { Products, initProducts } from './pages/Products.js';
 import { Cart } from './pages/Cart.js';
+import { products } from './utils/data.js';
+import { cartStore } from './store/cartStore.js';
 
 const app = document.querySelector("#app");
 
-// Upgrade routes to hold both the render function and an optional init function
 const routes = {
   '': { render: Home },
   '#': { render: Home },
@@ -18,10 +19,8 @@ function router() {
   const path = window.location.hash;
   const route = routes[path] || routes[''];
   
-  // 1. Render the HTML
   app.innerHTML = Layout(route.render());
   
-  // 2. Execute the initialization logic if it exists
   if (route.init) {
     route.init();
   }
@@ -29,3 +28,24 @@ function router() {
 
 window.addEventListener('hashchange', router);
 window.addEventListener('DOMContentLoaded', router);
+
+// Global Event Delegation for Add to Cart
+document.addEventListener('click', (e) => {
+  // Check if the clicked element has our specific button class
+  if (e.target.matches('.add-to-cart-btn')) {
+    const productId = parseInt(e.target.getAttribute('data-id'));
+    const product = products.find(p => p.id === productId);
+    
+    if (product) {
+      cartStore.addToCart(product);
+    }
+  }
+});
+
+// Listen for Cart Updates and modify the DOM
+window.addEventListener('cartUpdated', () => {
+  const cartCountElement = document.getElementById('cart-count');
+  if (cartCountElement) {
+    cartCountElement.textContent = `Cart (${cartStore.getTotalItems()})`;
+  }
+});
