@@ -1,8 +1,7 @@
 import './styles/main.css';
 import { Layout } from './components/Layout.js';
+import { Home } from './pages/Home.js';
 
 const app = document.querySelector("#app");
 
-const homeContent = `<p>Application shell styled and loaded through Layout wrapper.</p>`;
-
-app.innerHTML = Layout(homeContent);
+app.innerHTML = Layout(Home());

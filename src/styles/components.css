@@ -11,3 +11,21 @@
   text-align: center;
   color: var(--color-text-muted);
 }
+
+/* Navigation */
+.nav-list {
+  display: flex;
+  gap: var(--spacing-md);
+  list-style: none;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--color-primary);
+}

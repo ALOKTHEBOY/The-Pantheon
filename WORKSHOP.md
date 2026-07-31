@@ -16,6 +16,8 @@ Sprint 4: Navigation System
 - Built responsive grid and flexbox utilities (`layout.css`)
 - Centralized component styles (`components.css`)
 - Eliminated all inline styles
+- Built dynamic navigation menu in Header
+- Created Home page view component (`Home.js`)
 
 ## Decisions
 - Vanilla JavaScript
@@ -25,6 +27,7 @@ Sprint 4: Navigation System
 - UI Components are standard functions returning HTML string literals
 - Centralized UI assembly in a Layout wrapper
 - Strict separation of CSS classes from JavaScript markup
+- Pages isolated under `src/pages/` and rendered dynamically
 
 ## Next Task
-- Begin Sprint 4: Navigation System (Dynamic menu rendering and routing placeholder)
+- Begin Sprint 5: Product Grid & State Architecture
