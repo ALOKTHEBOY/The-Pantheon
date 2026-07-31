@@ -1,6 +1,6 @@
 # NovaCart Pro
 ## Current Version
-v1.0
+v2.1
 
 ## Current Sprint
 Sprint 10: Cart Page Implementation
@@ -23,6 +23,8 @@ Sprint 10: Cart Page Implementation
 - Created global Cart Store with CustomEvent dispatching
 - Implemented global event delegation for Cart interactions
 - Made Header Cart counter reactive to global state
+- Built CartItem component and dynamic Cart page UI
+- Implemented item removal logic and forced re-rendering via router
 
 ## Decisions
 - Vanilla JavaScript (ES Modules, Vite)
@@ -32,8 +34,8 @@ Sprint 10: Cart Page Implementation
 - Interactivity handled by exporting isolated `init` functions that attach event listeners post-render
 - Form state managed by reading DOM values centrally during `input` and `change` events
 - Global State Management handled via plain objects and standard browser `CustomEvent` API
-- Button interactions managed via Global Event Delegation on the `document`
 - DOM elements react to state changes by listening for custom window events
+- Page re-renders triggered manually via dispatching native `hashchange` events
 
 ## Next Task
-- Begin Sprint 10: Cart Page Implementation (Rendering cart items and calculating totals)
+- Begin Sprint 11: Checkout Flow & Form Validation

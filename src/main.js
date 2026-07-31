@@ -2,17 +2,18 @@ import './styles/main.css';
 import { Layout } from './components/Layout.js';
 import { Home } from './pages/Home.js';
 import { Products, initProducts } from './pages/Products.js';
-import { Cart } from './pages/Cart.js';
+import { Cart, initCart } from './pages/Cart.js';
 import { products } from './utils/data.js';
 import { cartStore } from './store/cartStore.js';
 
 const app = document.querySelector("#app");
 
+// Change this line inside your routes object:
 const routes = {
   '': { render: Home },
   '#': { render: Home },
   '#products': { render: Products, init: initProducts },
-  '#cart': { render: Cart }
+  '#cart': { render: Cart, init: initCart } // <-- Updated
 };
 
 function router() {
