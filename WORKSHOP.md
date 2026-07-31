@@ -3,7 +3,7 @@
 v1.0
 
 ## Current Sprint
-Sprint 6: Client-Side Routing
+Sprint 7: Product Catalog & Dynamic Filtering
 
 ## Completed
 - Environment setup & Vite installation
@@ -15,15 +15,14 @@ Sprint 6: Client-Side Routing
 - Implemented currency formatting utility
 - Created dummy product data
 - Built reusable ProductCard component and mapped data to grid
-- Created Products and Cart placeholder pages
 - Built a hash-based client-side router in main.js
+- Rendered full product catalog and filter UI in Products page
 
 ## Decisions
 - Vanilla JavaScript (ES Modules, Vite)
 - UI Components are standard functions returning HTML string literals
 - Centralized UI assembly in a Layout wrapper
-- Data-driven rendering using `Array.prototype.map()`
 - Single Page Application (SPA) architecture using hash routing (`window.location.hash`)
 
 ## Next Task
-- Begin Sprint 7: Product Catalog & Dynamic Filtering
+- Implement JavaScript logic for dynamic category filtering
