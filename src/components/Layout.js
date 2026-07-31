@@ -4,7 +4,7 @@ import { Footer } from './Footer.js';
 export function Layout(content) {
   return `
     ${Header()}
-    <main style="flex: 1; padding: var(--spacing-md); max-width: 1200px; margin: 0 auto; width: 100%;">
+    <main class="container" style="flex: 1; padding-top: var(--spacing-lg); padding-bottom: var(--spacing-lg);">
       ${content}
     </main>
     ${Footer()}

@@ -1,7 +1,10 @@
 export function Header() {
   return `
-    <header style="padding: var(--spacing-md); background: var(--color-surface); border-bottom: 1px solid var(--color-border);">
-      <h2>NovaCart Pro</h2>
+    <header class="header">
+      <div class="container flex-between">
+        <h2>NovaCart Pro</h2>
+        <!-- Future navigation goes here -->
+      </div>
     </header>
   `;
 }
