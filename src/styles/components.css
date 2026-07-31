@@ -29,3 +29,47 @@
 .nav-link:hover, .nav-link.active {
   color: var(--color-primary);
 }
+
+/* Product Card */
+.product-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.product-image {
+  width: 100%;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.price {
+  color: var(--color-primary);
+  font-weight: bold;
+  margin: var(--spacing-sm) 0;
+}
+
+/* Buttons */
+.btn {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-sm);
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.btn:hover {
+  background-color: #1d4ed8;
+}

@@ -3,31 +3,25 @@
 v1.0
 
 ## Current Sprint
-Sprint 4: Navigation System
+Sprint 5: Product Grid & State Architecture
 
 ## Completed
 - Environment setup
-- Vite installation
 - Built base application shell and folder architecture
-- Created design tokens (`variables.css`)
-- Set up global reset (`main.css`)
-- Extracted Header and Footer into modular components
-- Created master Layout wrapper component
-- Built responsive grid and flexbox utilities (`layout.css`)
-- Centralized component styles (`components.css`)
-- Eliminated all inline styles
+- Created design tokens and global reset
+- Extracted Header, Footer, and Layout components
+- Built responsive grid and flexbox utilities
 - Built dynamic navigation menu in Header
-- Created Home page view component (`Home.js`)
+- Created Home page view component
+- Implemented currency formatting utility
+- Created dummy product data
+- Built reusable ProductCard component and mapped data to grid
 
 ## Decisions
-- Vanilla JavaScript
-- ES Modules
-- Vite
-- Create folders only when needed
+- Vanilla JavaScript (ES Modules, Vite)
 - UI Components are standard functions returning HTML string literals
 - Centralized UI assembly in a Layout wrapper
-- Strict separation of CSS classes from JavaScript markup
-- Pages isolated under `src/pages/` and rendered dynamically
+- Data-driven rendering using `Array.prototype.map()` and `.join('')`
 
 ## Next Task
-- Begin Sprint 5: Product Grid & State Architecture
+- Begin Sprint 6: Client-Side Routing (Navigating between pages)
