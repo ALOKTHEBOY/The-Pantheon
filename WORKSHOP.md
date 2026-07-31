@@ -3,7 +3,7 @@
 v1.0
 
 ## Current Sprint
-Sprint 7: Product Catalog & Dynamic Filtering
+Sprint 8: Search Functionality
 
 ## Completed
 - Environment setup & Vite installation
@@ -17,12 +17,15 @@ Sprint 7: Product Catalog & Dynamic Filtering
 - Built reusable ProductCard component and mapped data to grid
 - Built a hash-based client-side router in main.js
 - Rendered full product catalog and filter UI in Products page
+- Upgraded router to support component initialization lifecycle
+- Implemented dynamic category filtering logic
 
 ## Decisions
 - Vanilla JavaScript (ES Modules, Vite)
 - UI Components are standard functions returning HTML string literals
 - Centralized UI assembly in a Layout wrapper
 - Single Page Application (SPA) architecture using hash routing (`window.location.hash`)
+- Interactivity handled by exporting isolated `init` functions that attach event listeners post-render
 
 ## Next Task
-- Implement JavaScript logic for dynamic category filtering
+- Begin Sprint 8: Search Functionality (Adding a search bar and global product search)

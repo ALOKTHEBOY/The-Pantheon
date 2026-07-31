@@ -21,3 +21,23 @@ export function Products() {
     </div>
   `;
 }
+
+// Attach event listeners AFTER the HTML is in the DOM
+export function initProducts() {
+  const filterSelect = document.getElementById('category-filter');
+  const productGrid = document.getElementById('product-grid');
+
+  if (!filterSelect || !productGrid) return;
+
+  filterSelect.addEventListener('change', (e) => {
+    const selectedCategory = e.target.value;
+    
+    // Filter data based on selection
+    const filteredProducts = selectedCategory === 'All' 
+      ? products 
+      : products.filter(product => product.category === selectedCategory);
+
+    // Re-render only the grid
+    productGrid.innerHTML = filteredProducts.map(product => ProductCard(product)).join('');
+  });
+}

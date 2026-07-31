@@ -1,33 +1,31 @@
 import './styles/main.css';
 import { Layout } from './components/Layout.js';
 import { Home } from './pages/Home.js';
-import { Products } from './pages/Products.js';
+import { Products, initProducts } from './pages/Products.js';
 import { Cart } from './pages/Cart.js';
 
 const app = document.querySelector("#app");
 
-// Define our routes mapping URL hashes to components
+// Upgrade routes to hold both the render function and an optional init function
 const routes = {
-  '': Home,
-  '#': Home,
-  '#products': Products,
-  '#cart': Cart
+  '': { render: Home },
+  '#': { render: Home },
+  '#products': { render: Products, init: initProducts },
+  '#cart': { render: Cart }
 };
 
-// The routing engine
 function router() {
-  // 1. Get the current hash from the URL
   const path = window.location.hash;
+  const route = routes[path] || routes[''];
   
-  // 2. Find the matching component, default to Home if invalid
-  const pageComponent = routes[path] || Home;
+  // 1. Render the HTML
+  app.innerHTML = Layout(route.render());
   
-  // 3. Render the layout wrapper with the selected page inside
-  app.innerHTML = Layout(pageComponent());
+  // 2. Execute the initialization logic if it exists
+  if (route.init) {
+    route.init();
+  }
 }
 
-// Listen for navigation clicks (hash changes)
 window.addEventListener('hashchange', router);
-
-// Run the router once when the page initially loads
 window.addEventListener('DOMContentLoaded', router);
