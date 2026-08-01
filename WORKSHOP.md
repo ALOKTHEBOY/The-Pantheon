@@ -3,7 +3,7 @@
 v2.1
 
 ## Current Sprint
-Sprint 19: Product Sorting
+Sprint 20: Dark Mode Implementation
 
 ## Completed
 - Environment setup & Vite architecture
@@ -16,6 +16,7 @@ Sprint 19: Product Sorting
 - Handled empty states and LocalStorage hydration
 - Implemented Debounce utility to optimize search performance
 - Implemented array sorting logic for price ordering
+- Implemented persistent Dark Mode utilizing CSS Custom Properties and LocalStorage
 
 ## Next Task
-- Sprint 20: Dark Mode Implementation
+- Project completion review and final refactoring checks

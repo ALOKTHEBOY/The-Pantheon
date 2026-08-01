@@ -52,11 +52,18 @@ function router() {
   updateActiveNavLink(path);
 }
 
+// ... (keep routes and router functions above this exactly the same)
+
 window.addEventListener('hashchange', router);
 
 window.addEventListener('DOMContentLoaded', () => {
   router();
   window.dispatchEvent(new CustomEvent('cartUpdated'));
+  
+  // Apply saved theme on initial load
+  if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark-mode');
+  }
 });
 
 window.addEventListener('cartUpdated', () => {
@@ -66,25 +73,38 @@ window.addEventListener('cartUpdated', () => {
   }
 });
 
-// Global Event Delegation for Add to Cart
-document.addEventListener('click', async (e) => { // <-- Made callback async
+// Global Event Delegation for Clicks
+document.addEventListener('click', async (e) => {
+  
+  // 1. Theme Toggle Logic
+  if (e.target.closest('#theme-toggle')) {
+    const toggleBtn = e.target.closest('#theme-toggle');
+    document.body.classList.toggle('dark-mode');
+    
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    
+    // Update the icon
+    toggleBtn.textContent = isDark ? '☀️' : '🌙';
+    return; // Exit early
+  }
+
+  // 2. Add to Cart Logic
   if (e.target.matches('.add-to-cart-btn')) {
     const button = e.target;
     const originalText = button.textContent;
     
-    // UI feedback during network request
     button.textContent = 'Adding...';
     button.disabled = true;
 
     const productId = parseInt(button.getAttribute('data-id'));
-    const product = await getProductById(productId); // <-- Network request
+    const product = await getProductById(productId); 
     
     if (product) {
       cartStore.addToCart(product);
       showToast(`${product.name} added to cart!`);
     }
 
-    // Restore button
     button.textContent = originalText;
     button.disabled = false;
   }
