@@ -3,7 +3,7 @@
 v2.1
 
 ## Current Sprint
-Sprint 15: Error Handling & Empty States
+Sprint 16: LocalStorage Hydration Bug Fixes & Edge Cases
 
 ## Completed
 - Environment setup & Vite architecture
@@ -20,6 +20,8 @@ Sprint 15: Error Handling & Empty States
 - Built dynamic Product Details page
 - Built transient Toast Notification utility with CSS animations
 - Implemented graceful empty states and filter reset logic
+- Fixed LocalStorage hydration bug on initial render
+- Implemented dynamic active state for navigation links
 
 ## Decisions
 - Vanilla JavaScript (ES Modules, Vite)
@@ -29,9 +31,8 @@ Sprint 15: Error Handling & Empty States
 - Interactivity handled by exporting isolated `init` functions
 - Form state managed by reading DOM values centrally
 - Global State Management handled via `localStorage` and `CustomEvent` API
-- Button interactions managed via Global Event Delegation on the `document`
-- Non-blocking user feedback handled via dynamic DOM injection and CSS keyframes
 - Edge cases and empty data states must always provide a user-actionable fallback UI
+- UI must manually sync with persisted state upon `DOMContentLoaded`
 
 ## Next Task
-- Begin Sprint 16: LocalStorage Hydration Bug Fixes & Edge Cases
+- Begin Sprint 17: Mock API Simulation (Asynchronous Data Fetching)

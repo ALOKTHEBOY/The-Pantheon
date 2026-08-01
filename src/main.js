@@ -21,32 +21,50 @@ const routes = {
   '#checkout': { render: Checkout, init: initCheckout } // <-- Added Checkout route
 };
 
-// ... (keep the routes object exactly the same) ...
+// ... (keep imports and routes object exactly the same) ...
+
+function updateActiveNavLink(currentPath) {
+  const links = document.querySelectorAll('.nav-link');
+  links.forEach(link => {
+    link.classList.remove('active');
+    // Default empty path to '#' for the Home link
+    const targetPath = currentPath === '' ? '#' : currentPath;
+    if (link.getAttribute('href') === targetPath) {
+      link.classList.add('active');
+    }
+  });
+}
 
 function router() {
   const path = window.location.hash;
   
-  // NEW: Check for dynamic product route
   if (path.startsWith('#product/')) {
-    const productId = path.split('/')[1]; // Extracts the "1" from "#product/1"
+    const productId = path.split('/')[1]; 
     app.innerHTML = Layout(ProductDetails(productId));
-    return; // Exit the router early so it doesn't look for static routes
+    updateActiveNavLink('#products'); // Keep Products highlighted when viewing a detail page
+    return; 
   }
 
-  // Existing static route logic
   const route = routes[path] || routes[''];
-  
   app.innerHTML = Layout(route.render());
   
   if (route.init) {
     route.init();
   }
+
+  // Update the navigation highlighting
+  updateActiveNavLink(path);
 }
 
-// ... (keep event listeners and cart delegation exactly the same) ...
-
 window.addEventListener('hashchange', router);
-window.addEventListener('DOMContentLoaded', router);
+
+window.addEventListener('DOMContentLoaded', () => {
+  router();
+  // BUG FIX: Manually trigger the cart update event on first load so the header syncs with localStorage
+  window.dispatchEvent(new CustomEvent('cartUpdated'));
+});
+
+// ... (keep Global Event Delegation listener exactly the same) ...
 
 // Global Event Delegation for Add to Cart
 document.addEventListener('click', (e) => {
