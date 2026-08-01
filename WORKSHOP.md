@@ -3,7 +3,7 @@
 v2.1
 
 ## Current Sprint
-Sprint 14: Toast Notifications
+Sprint 15: Error Handling & Empty States
 
 ## Completed
 - Environment setup & Vite architecture
@@ -16,9 +16,10 @@ Sprint 14: Toast Notifications
 - Created global Cart Store (LocalStorage) with CustomEvent dispatching
 - Implemented global event delegation for Cart interactions
 - Built Cart page UI, removal logic, and Checkout form validation
-- Upgraded hash router to parse dynamic URL parameters (`#product/:id`)
+- Upgraded hash router to parse dynamic URL parameters
 - Built dynamic Product Details page
 - Built transient Toast Notification utility with CSS animations
+- Implemented graceful empty states and filter reset logic
 
 ## Decisions
 - Vanilla JavaScript (ES Modules, Vite)
@@ -30,6 +31,7 @@ Sprint 14: Toast Notifications
 - Global State Management handled via `localStorage` and `CustomEvent` API
 - Button interactions managed via Global Event Delegation on the `document`
 - Non-blocking user feedback handled via dynamic DOM injection and CSS keyframes
+- Edge cases and empty data states must always provide a user-actionable fallback UI
 
 ## Next Task
-- Begin Sprint 15: Error Handling & Empty States
+- Begin Sprint 16: LocalStorage Hydration Bug Fixes & Edge Cases

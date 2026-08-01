@@ -32,7 +32,6 @@ export function initProducts() {
 
   if (!filterSelect || !searchInput || !productGrid) return;
 
-  // Centralized filter logic
   function updateGrid() {
     const selectedCategory = filterSelect.value;
     const searchTerm = searchInput.value.toLowerCase();
@@ -44,10 +43,29 @@ export function initProducts() {
       return matchesCategory && matchesSearch;
     });
 
+    // NEW: Handle Empty State
+    if (filteredProducts.length === 0) {
+      productGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: var(--spacing-lg); background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+          <h3 style="margin-bottom: var(--spacing-sm);">No products found</h3>
+          <p style="color: var(--color-text-muted);">Try adjusting your search or category filter.</p>
+          <button class="btn" id="clear-filters-btn" style="margin-top: var(--spacing-md); width: auto; padding: var(--spacing-sm) var(--spacing-lg);">Clear Filters</button>
+        </div>
+      `;
+      
+      // Attach listener to the new button
+      document.getElementById('clear-filters-btn').addEventListener('click', () => {
+        searchInput.value = '';
+        filterSelect.value = 'All';
+        updateGrid(); // Re-trigger the grid update
+      });
+      
+      return; // Exit the function early
+    }
+
     productGrid.innerHTML = filteredProducts.map(product => ProductCard(product)).join('');
   }
 
-  // Listen to both inputs
   filterSelect.addEventListener('change', updateGrid);
-  searchInput.addEventListener('input', updateGrid); // 'input' fires on every keystroke
+  searchInput.addEventListener('input', updateGrid);
 }
