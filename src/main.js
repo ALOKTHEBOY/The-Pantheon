@@ -1,6 +1,6 @@
 import './styles/main.css';
 import { Layout } from './components/Layout.js';
-import { Home } from './pages/Home.js';
+import { Home, initHome } from './pages/Home.js';
 import { Products, initProducts } from './pages/Products.js';
 import { Cart, initCart } from './pages/Cart.js';
 import { products } from './utils/data.js';
@@ -12,13 +12,13 @@ import { showToast } from './utils/toast.js';
 
 const app = document.querySelector("#app");
 
-// Update the routes object
+// Update the routes object:
 const routes = {
-  '': { render: Home },
-  '#': { render: Home },
+  '': { render: Home, init: initHome },
+  '#': { render: Home, init: initHome },
   '#products': { render: Products, init: initProducts },
   '#cart': { render: Cart, init: initCart },
-  '#checkout': { render: Checkout, init: initCheckout } // <-- Added Checkout route
+  '#checkout': { render: Checkout, init: initCheckout }
 };
 
 // ... (keep imports and routes object exactly the same) ...

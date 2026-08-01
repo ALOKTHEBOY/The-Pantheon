@@ -3,7 +3,7 @@
 v2.1
 
 ## Current Sprint
-Sprint 16: LocalStorage Hydration Bug Fixes & Edge Cases
+Sprint 17: Mock API Simulation
 
 ## Completed
 - Environment setup & Vite architecture
@@ -18,21 +18,19 @@ Sprint 16: LocalStorage Hydration Bug Fixes & Edge Cases
 - Built Cart page UI, removal logic, and Checkout form validation
 - Upgraded hash router to parse dynamic URL parameters
 - Built dynamic Product Details page
-- Built transient Toast Notification utility with CSS animations
+- Built transient Toast Notification utility
 - Implemented graceful empty states and filter reset logic
-- Fixed LocalStorage hydration bug on initial render
-- Implemented dynamic active state for navigation links
+- Fixed LocalStorage hydration bug and implemented active navigation state
+- Built mock API service with Promises and simulated network delay
+- Refactored Home page to handle asynchronous data fetching and loading states
 
 ## Decisions
 - Vanilla JavaScript (ES Modules, Vite)
 - UI Components are standard functions returning HTML string literals
-- Centralized UI assembly in a Layout wrapper
-- Single Page Application (SPA) architecture using hash routing (`window.location.hash`)
-- Interactivity handled by exporting isolated `init` functions
-- Form state managed by reading DOM values centrally
+- Single Page Application (SPA) architecture using hash routing
+- Interactivity and Data Fetching handled by exporting isolated `init` functions
+- Asynchronous operations handled via native `Promises` and `async/await`
 - Global State Management handled via `localStorage` and `CustomEvent` API
-- Edge cases and empty data states must always provide a user-actionable fallback UI
-- UI must manually sync with persisted state upon `DOMContentLoaded`
 
 ## Next Task
-- Begin Sprint 17: Mock API Simulation (Asynchronous Data Fetching)
+- Apply asynchronous data fetching to the Products and Product Details pages
