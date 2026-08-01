@@ -12,17 +12,15 @@ Sprint 17: Mock API Simulation
 - Built dynamic navigation menu in Header
 - Implemented currency formatting utility and dummy data
 - Built reusable ProductCard component and mapped data to grid
-- Rendered full product catalog and filter UI with search capabilities
 - Created global Cart Store (LocalStorage) with CustomEvent dispatching
 - Implemented global event delegation for Cart interactions
 - Built Cart page UI, removal logic, and Checkout form validation
 - Upgraded hash router to parse dynamic URL parameters
-- Built dynamic Product Details page
 - Built transient Toast Notification utility
 - Implemented graceful empty states and filter reset logic
 - Fixed LocalStorage hydration bug and implemented active navigation state
 - Built mock API service with Promises and simulated network delay
-- Refactored Home page to handle asynchronous data fetching and loading states
+- Refactored entire application (Home, Products, Details, Cart interactions) to handle asynchronous data fetching and loading states
 
 ## Decisions
 - Vanilla JavaScript (ES Modules, Vite)
@@ -31,6 +29,7 @@ Sprint 17: Mock API Simulation
 - Interactivity and Data Fetching handled by exporting isolated `init` functions
 - Asynchronous operations handled via native `Promises` and `async/await`
 - Global State Management handled via `localStorage` and `CustomEvent` API
+- Micro-interactions (like disabling buttons during network requests) used to prevent duplicate actions
 
 ## Next Task
-- Apply asynchronous data fetching to the Products and Product Details pages
+- Begin Sprint 18: Performance & Final Polish

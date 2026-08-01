@@ -7,3 +7,9 @@ export function fetchProducts() {
     }, 800);
   });
 }
+
+// NEW: Fetch a single product
+export async function getProductById(id) {
+  const allProducts = await fetchProducts();
+  return allProducts.find(p => p.id === id);
+}
