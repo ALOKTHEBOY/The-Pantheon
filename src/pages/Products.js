@@ -1,5 +1,6 @@
 import { fetchProducts } from '../services/api.js';
 import { ProductCard } from '../components/ProductCard.js';
+import { debounce } from '../utils/debounce.js'; // <-- New import
 
 // We store the fetched data locally in this module so the filter can use it
 let allProducts = [];
@@ -70,11 +71,14 @@ export async function initProducts() {
 
       productGrid.innerHTML = filteredProducts.map(product => ProductCard(product)).join('');
     }
-
+    
     // Initial render and listeners
     updateGrid();
     filterSelect.addEventListener('change', updateGrid);
-    searchInput.addEventListener('input', updateGrid);
+    
+    // NEW: Wrap the search listener in the debounce function
+    const debouncedSearch = debounce(updateGrid, 300);
+    searchInput.addEventListener('input', debouncedSearch);
     
   } catch (error) {
     productGrid.innerHTML = `<p style="color: #ef4444; grid-column: 1 / -1;">Failed to load catalog.</p>`;
