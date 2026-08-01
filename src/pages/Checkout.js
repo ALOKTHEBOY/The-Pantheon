@@ -1,3 +1,5 @@
+import { cartStore } from '../store/cartStore.js';
+
 export function Checkout() {
   return `
     <div style="max-width: 600px; margin: 0 auto; background: var(--color-surface); padding: var(--spacing-lg); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
@@ -30,12 +32,12 @@ export function initCheckout() {
   if (!form) return;
 
   form.addEventListener('submit', (e) => {
-    e.preventDefault(); // Prevent the page from reloading
+    e.preventDefault(); 
     
-    // Simulate order processing
+    // Clear the cart upon successful order
+    cartStore.clearCart();
+    
     alert('Order placed successfully! Thank you for shopping with NovaCart Pro.');
-    
-    // Redirect to the home page
     window.location.hash = '';
   });
 }
