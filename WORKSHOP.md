@@ -3,7 +3,7 @@
 v2.1
 
 ## Current Sprint
-Sprint 13: Product Details Page & Dynamic Routing
+Sprint 14: Toast Notifications
 
 ## Completed
 - Environment setup & Vite architecture
@@ -18,6 +18,7 @@ Sprint 13: Product Details Page & Dynamic Routing
 - Built Cart page UI, removal logic, and Checkout form validation
 - Upgraded hash router to parse dynamic URL parameters (`#product/:id`)
 - Built dynamic Product Details page
+- Built transient Toast Notification utility with CSS animations
 
 ## Decisions
 - Vanilla JavaScript (ES Modules, Vite)
@@ -28,6 +29,7 @@ Sprint 13: Product Details Page & Dynamic Routing
 - Form state managed by reading DOM values centrally
 - Global State Management handled via `localStorage` and `CustomEvent` API
 - Button interactions managed via Global Event Delegation on the `document`
+- Non-blocking user feedback handled via dynamic DOM injection and CSS keyframes
 
 ## Next Task
-- Begin Sprint 14: Toast Notifications (User feedback system)
+- Begin Sprint 15: Error Handling & Empty States

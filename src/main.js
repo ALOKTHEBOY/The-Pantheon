@@ -8,6 +8,7 @@ import { cartStore } from './store/cartStore.js';
 // Add this to your imports at the top
 import { Checkout, initCheckout } from './pages/Checkout.js';
 import { ProductDetails } from './pages/ProductDetails.js';
+import { showToast } from './utils/toast.js';
 
 const app = document.querySelector("#app");
 
@@ -49,13 +50,13 @@ window.addEventListener('DOMContentLoaded', router);
 
 // Global Event Delegation for Add to Cart
 document.addEventListener('click', (e) => {
-  // Check if the clicked element has our specific button class
   if (e.target.matches('.add-to-cart-btn')) {
     const productId = parseInt(e.target.getAttribute('data-id'));
     const product = products.find(p => p.id === productId);
     
     if (product) {
       cartStore.addToCart(product);
+      showToast(`${product.name} added to cart!`); // <-- Trigger the notification
     }
   }
 });
