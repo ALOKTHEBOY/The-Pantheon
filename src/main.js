@@ -5,15 +5,18 @@ import { Products, initProducts } from './pages/Products.js';
 import { Cart, initCart } from './pages/Cart.js';
 import { products } from './utils/data.js';
 import { cartStore } from './store/cartStore.js';
+// Add this to your imports at the top
+import { Checkout, initCheckout } from './pages/Checkout.js';
 
 const app = document.querySelector("#app");
 
-// Change this line inside your routes object:
+// Update the routes object
 const routes = {
   '': { render: Home },
   '#': { render: Home },
   '#products': { render: Products, init: initProducts },
-  '#cart': { render: Cart, init: initCart } // <-- Updated
+  '#cart': { render: Cart, init: initCart },
+  '#checkout': { render: Checkout, init: initCheckout } // <-- Added Checkout route
 };
 
 function router() {

@@ -22,7 +22,7 @@ export function Cart() {
           <h3>Total:</h3>
           <h3 class="price">${formatCurrency(cartStore.getTotalPrice())}</h3>
         </div>
-        <button class="btn" style="margin-top: var(--spacing-md); font-size: 1.1rem; padding: var(--spacing-md);">Proceed to Checkout</button>
+        <a href="#checkout" class="btn" style="margin-top: var(--spacing-md); font-size: 1.1rem; padding: var(--spacing-md); text-align: center; text-decoration: none; display: block;">Proceed to Checkout</a>
       ` : ''}
     </div>
   `;

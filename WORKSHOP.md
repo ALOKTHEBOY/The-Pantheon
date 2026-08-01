@@ -3,7 +3,7 @@
 v2.1
 
 ## Current Sprint
-Sprint 10: Cart Page Implementation
+Sprint 11: Checkout Flow & Form Validation
 
 ## Completed
 - Environment setup & Vite installation
@@ -25,6 +25,8 @@ Sprint 10: Cart Page Implementation
 - Made Header Cart counter reactive to global state
 - Built CartItem component and dynamic Cart page UI
 - Implemented item removal logic and forced re-rendering via router
+- Created Checkout page with form validation
+- Handled form submission and redirection
 
 ## Decisions
 - Vanilla JavaScript (ES Modules, Vite)
@@ -32,10 +34,9 @@ Sprint 10: Cart Page Implementation
 - Centralized UI assembly in a Layout wrapper
 - Single Page Application (SPA) architecture using hash routing (`window.location.hash`)
 - Interactivity handled by exporting isolated `init` functions that attach event listeners post-render
-- Form state managed by reading DOM values centrally during `input` and `change` events
+- Form state managed by reading DOM values centrally during `input`, `change`, and `submit` events
 - Global State Management handled via plain objects and standard browser `CustomEvent` API
-- DOM elements react to state changes by listening for custom window events
-- Page re-renders triggered manually via dispatching native `hashchange` events
+- Navigation between major flows (Cart -> Checkout) handled via semantic `<a>` tags utilizing the hash router
 
 ## Next Task
-- Begin Sprint 11: Checkout Flow & Form Validation
+- Finalize Sprint 11: Clear cart state upon successful checkout
