@@ -7,6 +7,7 @@ import { products } from './utils/data.js';
 import { cartStore } from './store/cartStore.js';
 // Add this to your imports at the top
 import { Checkout, initCheckout } from './pages/Checkout.js';
+import { ProductDetails } from './pages/ProductDetails.js';
 
 const app = document.querySelector("#app");
 
@@ -19,8 +20,19 @@ const routes = {
   '#checkout': { render: Checkout, init: initCheckout } // <-- Added Checkout route
 };
 
+// ... (keep the routes object exactly the same) ...
+
 function router() {
   const path = window.location.hash;
+  
+  // NEW: Check for dynamic product route
+  if (path.startsWith('#product/')) {
+    const productId = path.split('/')[1]; // Extracts the "1" from "#product/1"
+    app.innerHTML = Layout(ProductDetails(productId));
+    return; // Exit the router early so it doesn't look for static routes
+  }
+
+  // Existing static route logic
   const route = routes[path] || routes[''];
   
   app.innerHTML = Layout(route.render());
@@ -29,6 +41,8 @@ function router() {
     route.init();
   }
 }
+
+// ... (keep event listeners and cart delegation exactly the same) ...
 
 window.addEventListener('hashchange', router);
 window.addEventListener('DOMContentLoaded', router);
