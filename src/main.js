@@ -1,27 +1,45 @@
+// --- 1. IMPORTS ---
+// Core & Utils
 import './styles/main.css';
 import { Layout } from './components/Layout.js';
+import { showToast } from './utils/toast.js';
+import { getProductById } from './services/api.js';
+
+// Pages
 import { Home, initHome } from './pages/Home.js';
 import { Products, initProducts } from './pages/Products.js';
 import { Cart, initCart } from './pages/Cart.js';
 import { Checkout, initCheckout } from './pages/Checkout.js';
-import { ProductDetails, initProductDetails } from './pages/ProductDetails.js'; // <-- Updated
-import { cartStore } from './store/cartStore.js';
-import { showToast } from './utils/toast.js';
-import { getProductById } from './services/api.js'; // <-- New import
-import { wishlistStore } from './store/wishlistStore.js';
+import { ProductDetails, initProductDetails } from './pages/ProductDetails.js';
 import { Wishlist, initWishlist } from './pages/Wishlist.js';
+import { Login, initLogin } from './pages/Login.js';
+import { Register, initRegister } from './pages/Register.js';
+import { Profile, initProfile } from './pages/Profile.js';
 
+// Stores
+import { cartStore } from './store/cartStore.js';
+import { wishlistStore } from './store/wishlistStore.js';
+import { authStore } from './store/authStore.js';
+import { notificationStore } from './store/notificationStore.js';
+
+// --- 2. INITIALIZATION ---
+authStore.init(); // Starts listening to Firebase user session
 const app = document.querySelector("#app");
 
+// --- 3. ROUTER CONFIGURATION ---
 const routes = {
   '': { render: Home, init: initHome },
   '#': { render: Home, init: initHome },
   '#products': { render: Products, init: initProducts },
-  '#wishlist': { render: Wishlist, init: initWishlist }, // <-- New Route
+  '#wishlist': { render: Wishlist, init: initWishlist },
   '#cart': { render: Cart, init: initCart },
-  '#checkout': { render: Checkout, init: initCheckout }
+  '#checkout': { render: Checkout, init: initCheckout },
+  '#login': { render: Login, init: initLogin },
+  '#register': { render: Register, init: initRegister },
+  '#profile': { render: Profile, init: initProfile },
 };
 
+// Helper: Highlights the active link in the navigation bar
 function updateActiveNavLink(currentPath) {
   const links = document.querySelectorAll('.nav-link');
   links.forEach(link => {
@@ -33,19 +51,28 @@ function updateActiveNavLink(currentPath) {
   });
 }
 
+// Core Router Logic
 function router() {
   const path = window.location.hash;
   
+  // Handle Dynamic Product Details Route
   if (path.startsWith('#product/')) {
     const productId = path.split('/')[1]; 
-    app.innerHTML = Layout(ProductDetails()); // <-- Removed ID from here
-    initProductDetails(productId); // <-- Added init call here
+    app.innerHTML = Layout(ProductDetails()); 
+    initProductDetails(productId); 
     updateActiveNavLink('#products'); 
     return; 
   }
 
+  // Handle Protected Routes (Security Check)
+  const protectedRoutes = ['#profile'];
+  if (protectedRoutes.includes(path) && !authStore.user) {
+    window.location.hash = '#login'; // Redirect unauthorized users
+    return; 
+  }
+
+  // Handle Standard Routes
   const route = routes[path] || routes[''];
-  
   app.innerHTML = Layout(route.render());
   
   if (route.init) {
@@ -55,20 +82,22 @@ function router() {
   updateActiveNavLink(path);
 }
 
-// ... (keep routes and router functions above this exactly the same)
-
+// --- 4. GLOBAL EVENT LISTENERS ---
+// Triggers router when the URL hash changes
 window.addEventListener('hashchange', router);
 
+// Initial page load setup
 window.addEventListener('DOMContentLoaded', () => {
   router();
-  window.dispatchEvent(new CustomEvent('cartUpdated'));
+  window.dispatchEvent(new CustomEvent('cartUpdated')); // Hydrates cart count
   
-  // Apply saved theme on initial load
+  // Restores user's preferred theme
   if (localStorage.getItem('theme') === 'dark') {
     document.body.classList.add('dark-mode');
   }
 });
 
+// Updates the header cart count dynamically
 window.addEventListener('cartUpdated', () => {
   const cartCountElement = document.getElementById('cart-count');
   if (cartCountElement) {
@@ -76,43 +105,49 @@ window.addEventListener('cartUpdated', () => {
   }
 });
 
-// Global Event Delegation for Clicks
+// Refreshes the view when a user logs in or out
+window.addEventListener('authStateChanged', () => {
+  window.dispatchEvent(new Event('hashchange')); 
+});
+
+
+// --- 5. GLOBAL CLICK DELEGATION ---
+// Handles all click interactions efficiently at the document level
 document.addEventListener('click', async (e) => {
   
-  // 1. Theme Toggle Logic
+  // Theme Toggle Logic
   if (e.target.closest('#theme-toggle')) {
     const toggleBtn = e.target.closest('#theme-toggle');
     document.body.classList.toggle('dark-mode');
     
     const isDark = document.body.classList.contains('dark-mode');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    
-    // Update the icon
     toggleBtn.textContent = isDark ? '☀️' : '🌙';
-    return; // Exit early
+    return; 
   }
 
-  // 3. Wishlist Toggle Logic
+  // Wishlist Toggle Logic
   if (e.target.closest('.wishlist-toggle-btn')) {
     const button = e.target.closest('.wishlist-toggle-btn');
     const productId = parseInt(button.getAttribute('data-id'));
-    
-    // Fetch product to save full details to wishlist
     const product = await getProductById(productId);
     
     if (product) {
       wishlistStore.toggle(product);
-      
-      // Instantly update the UI icon
       const isNowWishlisted = wishlistStore.hasItem(productId);
       button.textContent = isNowWishlisted ? '❤️' : '🤍';
-      
       showToast(isNowWishlisted ? 'Added to Wishlist!' : 'Removed from Wishlist');
     }
-    return; // Exit early
+    return; 
+  }
+
+  // Logout Logic
+  if (e.target.id === 'logout-btn') {
+    authStore.logout();
+    return;
   }
   
-  // 2. Add to Cart Logic
+  // Add to Cart Logic
   if (e.target.matches('.add-to-cart-btn')) {
     const button = e.target;
     const originalText = button.textContent;
@@ -130,5 +165,29 @@ document.addEventListener('click', async (e) => {
 
     button.textContent = originalText;
     button.disabled = false;
+  }
+
+  // Notification Bell Toggle Logic (BUG FIXED: Removed page refresh)
+  if (e.target.closest('#notification-bell')) {
+    const dropdown = document.getElementById('notification-dropdown');
+    const bellBtn = e.target.closest('#notification-bell');
+    const isHidden = dropdown.style.display === 'none';
+    
+    dropdown.style.display = isHidden ? 'block' : 'none';
+    
+    if (isHidden && notificationStore.getUnreadCount() > 0) {
+      notificationStore.markAllAsRead(); // Updates data state
+      
+      // Removes the red badge from the UI instantly without reloading the page
+      const badge = bellBtn.querySelector('span');
+      if (badge) badge.remove(); 
+    }
+    return;
+  }
+  
+  // Close Notification Dropdown if clicking anywhere else on the screen
+  const dropdown = document.getElementById('notification-dropdown');
+  if (dropdown && dropdown.style.display === 'block' && !e.target.closest('#notification-dropdown') && !e.target.closest('#notification-bell')) {
+    dropdown.style.display = 'none';
   }
 });
