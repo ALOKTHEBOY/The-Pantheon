@@ -1,11 +1,11 @@
 # NovaCart Pro
 ## Current Version
-v2.1
+v3.0 (Final)
 
-## Current Sprint
-Sprint 20: Dark Mode Implementation
+## Project Status
+COMPLETE
 
-## Completed
+## Completed Sprints
 - Environment setup & Vite architecture
 - Built responsive layout and component system
 - Implemented client-side hash routing (SPA)
@@ -16,7 +16,15 @@ Sprint 20: Dark Mode Implementation
 - Handled empty states and LocalStorage hydration
 - Implemented Debounce utility to optimize search performance
 - Implemented array sorting logic for price ordering
-- Implemented persistent Dark Mode utilizing CSS Custom Properties and LocalStorage
+- Implemented persistent Dark Mode utilizing CSS Custom Properties
+- Implemented Wishlist functionality and cross-wired with Cart
 
-## Next Task
-- Project completion review and final refactoring checks
+## Decisions
+- Vanilla JavaScript (ES Modules, Vite)
+- Event-driven state management (`CustomEvent`, `localStorage`)
+- Performance optimized via debouncing high-frequency DOM events
+- UI scalable through highly reusable string-literal components
+
+## Deployment
+- Codebase compiled via `npm run build`
+- Production `dist` successfully deployed to Netlify via GitHub

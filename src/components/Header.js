@@ -12,6 +12,7 @@ export function Header() {
           <ul class="nav-list" style="display: flex; gap: var(--spacing-md); margin: 0; padding: 0; list-style: none;">
             <li><a href="#" class="nav-link active">Home</a></li>
             <li><a href="#products" class="nav-link">Products</a></li>
+            <li><a href="#wishlist" class="nav-link">Wishlist</a></li>
             <li><a href="#cart" class="nav-link" id="cart-count">Cart (${totalItems})</a></li>
           </ul>
           <button id="theme-toggle" class="btn" style="padding: 0.25rem 0.5rem; background: transparent; border: 1px solid var(--color-border); color: var(--color-text-main); font-size: 1.2rem; margin-left: var(--spacing-sm);">

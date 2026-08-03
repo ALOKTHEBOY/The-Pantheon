@@ -8,6 +8,8 @@ import { ProductDetails, initProductDetails } from './pages/ProductDetails.js'; 
 import { cartStore } from './store/cartStore.js';
 import { showToast } from './utils/toast.js';
 import { getProductById } from './services/api.js'; // <-- New import
+import { wishlistStore } from './store/wishlistStore.js';
+import { Wishlist, initWishlist } from './pages/Wishlist.js';
 
 const app = document.querySelector("#app");
 
@@ -15,6 +17,7 @@ const routes = {
   '': { render: Home, init: initHome },
   '#': { render: Home, init: initHome },
   '#products': { render: Products, init: initProducts },
+  '#wishlist': { render: Wishlist, init: initWishlist }, // <-- New Route
   '#cart': { render: Cart, init: initCart },
   '#checkout': { render: Checkout, init: initCheckout }
 };
@@ -89,6 +92,26 @@ document.addEventListener('click', async (e) => {
     return; // Exit early
   }
 
+  // 3. Wishlist Toggle Logic
+  if (e.target.closest('.wishlist-toggle-btn')) {
+    const button = e.target.closest('.wishlist-toggle-btn');
+    const productId = parseInt(button.getAttribute('data-id'));
+    
+    // Fetch product to save full details to wishlist
+    const product = await getProductById(productId);
+    
+    if (product) {
+      wishlistStore.toggle(product);
+      
+      // Instantly update the UI icon
+      const isNowWishlisted = wishlistStore.hasItem(productId);
+      button.textContent = isNowWishlisted ? '❤️' : '🤍';
+      
+      showToast(isNowWishlisted ? 'Added to Wishlist!' : 'Removed from Wishlist');
+    }
+    return; // Exit early
+  }
+  
   // 2. Add to Cart Logic
   if (e.target.matches('.add-to-cart-btn')) {
     const button = e.target;
