@@ -34,7 +34,7 @@ export function initCart() {
 
   cartContainer.addEventListener('click', (e) => {
     if (e.target.matches('.remove-btn')) {
-      const productId = parseInt(e.target.getAttribute('data-id'));
+      const productId = e.target.getAttribute('data-id');
       cartStore.removeFromCart(productId);
       
       // Force the router to re-render the current view
