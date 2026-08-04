@@ -15,6 +15,7 @@ import { Wishlist, initWishlist } from './pages/Wishlist.js';
 import { Login, initLogin } from './pages/Login.js';
 import { Register, initRegister } from './pages/Register.js';
 import { Profile, initProfile } from './pages/Profile.js';
+import { Dashboard, initDashboard } from './pages/Dashboard.js';
 
 // Stores
 import { cartStore } from './store/cartStore.js';
@@ -37,6 +38,7 @@ const routes = {
   '#login': { render: Login, init: initLogin },
   '#register': { render: Register, init: initRegister },
   '#profile': { render: Profile, init: initProfile },
+  '#dashboard': { render: Dashboard, init: initDashboard }, // <-- Add this line
 };
 
 // Helper: Highlights the active link in the navigation bar
@@ -65,10 +67,18 @@ function router() {
   }
 
   // Handle Protected Routes (Security Check)
-  const protectedRoutes = ['#profile'];
+  const protectedRoutes = ['#profile', '#dashboard']; // <-- Update this line
   if (protectedRoutes.includes(path) && !authStore.user) {
     window.location.hash = '#login'; // Redirect unauthorized users
     return; 
+  }
+
+  // Admin-only Route Protection
+  const adminEmail = 'alokb7837@gmail.com'; // Must match the one in Header.js
+  if (path === '#dashboard' && authStore.user.email !== adminEmail) {
+    alert("Access Denied: Admins Only");
+    window.location.hash = '#'; // Kick them back to the home page
+    return;
   }
 
   // Handle Standard Routes
@@ -129,7 +139,7 @@ document.addEventListener('click', async (e) => {
   // Wishlist Toggle Logic
   if (e.target.closest('.wishlist-toggle-btn')) {
     const button = e.target.closest('.wishlist-toggle-btn');
-    const productId = parseInt(button.getAttribute('data-id'));
+    const productId = button.getAttribute('data-id');
     const product = await getProductById(productId);
     
     if (product) {
@@ -155,7 +165,7 @@ document.addEventListener('click', async (e) => {
     button.textContent = 'Adding...';
     button.disabled = true;
 
-    const productId = parseInt(button.getAttribute('data-id'));
+    const productId = button.getAttribute('data-id');
     const product = await getProductById(productId); 
     
     if (product) {

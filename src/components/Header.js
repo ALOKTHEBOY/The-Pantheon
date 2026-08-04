@@ -17,7 +17,9 @@ export function Header() {
             <li><a href="#wishlist" class="nav-link">Wishlist</a></li>
             
             ${authStore.user 
-              ? `<li><a href="#profile" style="color: var(--color-text-main); text-decoration: none; font-weight: bold; margin-right: 10px;">Hi, ${authStore.user.displayName || 'User'}</a> <button id="logout-btn" style="background:none; border:none; color:var(--color-primary); font-weight:bold; cursor:pointer;">Logout</button></li>` 
+              ? `
+                 ${authStore.user.email === 'alokb7837@gmail.com' ? `<li><a href="#dashboard" class="nav-link" style="font-weight: bold; color: var(--color-text-main); margin-right: 15px;">Dashboard</a></li>` : ''}
+                 <li><a href="#profile" style="color: var(--color-text-main); text-decoration: none; font-weight: bold; margin-right: 10px;">Hi, ${authStore.user.displayName || 'User'}</a> <button id="logout-btn" style="background:none; border:none; color:var(--color-primary); font-weight:bold; cursor:pointer;">Logout</button></li>` 
               : `<li><a href="#login" class="nav-link" style="font-weight: bold; color: var(--color-primary);">Login</a></li>`
             }
             

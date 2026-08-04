@@ -11,6 +11,7 @@ A high-performance, responsive e-commerce Single Page Application (SPA) built st
 *   **Firebase Authentication:** Secure email/password login, session management, and protected routing.
 *   **Event Delegation:** Highly optimized global click listeners for DOM interactions.
 *   **Persistent UI:** Native CSS variables for Dark/Light mode and local storage data persistence.
+*   **Secure Admin Dashboard:** Role-based access control (RBAC) protecting a full CRUD interface connected to Firebase Firestore for real-time inventory management.
 
 ## 🛠️ Tech Stack
 *   **Frontend:** HTML5, CSS3, ES6+ JavaScript

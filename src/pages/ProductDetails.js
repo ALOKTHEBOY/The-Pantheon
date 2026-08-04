@@ -18,7 +18,7 @@ export async function initProductDetails(id) {
   if (!container) return;
 
   try {
-    const product = await getProductById(parseInt(id));
+    const product = await getProductById(id);
 
     if (!product) {
       container.innerHTML = `

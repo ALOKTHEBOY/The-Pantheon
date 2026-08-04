@@ -1,25 +1,16 @@
-# NovaCart Pro
-## Current Version
-v0.8 (Authentication & Notifications)
+# 🛒 NovaCart Pro - Development Workshop
 
-## Project Status
-COMPLETE (Moving to v1.0)
+## 🚀 Current Progress: Version 1.5 Complete
 
-## Completed Sprints
-- Environment setup & Vite architecture
-- Built responsive layout and component system
-- Implemented client-side hash routing (SPA)
-- Built global Cart Store and UI reactions
-- Integrated mock async API and loading states
-- Built transient Toast Notification utility
-- Implemented persistent Dark Mode utilizing CSS Custom Properties
-- Implemented Wishlist functionality and cross-wired with Cart
-- **[v0.8]** Integrated Firebase Authentication (Email/Password)
-- **[v0.8]** Built secure Login & Registration forms with password toggles
-- **[v0.8]** Implemented protected route security for User Profiles
-- **[v0.8]** Built persistent Session Management state
-- **[v0.8]** Designed and integrated Notification Dropdown UI with read/unread states
+### ✅ Completed Milestones
+*   **v1.0: Core SPA Architecture**
+    *   Custom hash-based routing.
+    *   Global state management (Cart, Wishlist, Auth).
+    *   Firebase Authentication (Login/Register).
+*   **v1.5: Seller Dashboard & Database**
+    *   Integrated Firebase Firestore (Cloud Database).
+    *   Built Dashboard UI for full CRUD operations (Create, Read, Delete).
+    *   Implemented Role-Based Access Control (RBAC) to secure the dashboard for the Admin only.
 
-## Deployment
-- Codebase compiled via `npm run build`
-- Production `dist` successfully deployed to Netlify via GitHub
+### 🚧 Next Up: Version 2.0
+*   **The Checkout Flow:** Reading the final cart state, calculating totals, and creating a functional checkout submission form.
