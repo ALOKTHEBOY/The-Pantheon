@@ -1,5 +1,6 @@
 import { auth } from '../services/firebase.js';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { sendPasswordResetEmail } from 'firebase/auth'; // Ensure this is imported at the top of Login.js
 
 export function Login() {
   return `
@@ -18,6 +19,11 @@ export function Login() {
             <input type="password" id="login-password" required style="width: 100%; padding: var(--spacing-sm); border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main); padding-right: 40px;">
             <button type="button" id="toggle-login-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--color-text-muted); font-size: 1.2rem;">👁️</button>
           </div>
+        </div>
+        
+        <!-- Forgot Password Link -->
+        <div style="text-align: right; margin-top: -5px;">
+          <a href="#" id="forgot-password-link" style="font-size: 0.85rem; color: var(--color-primary); text-decoration: none;">Forgot Password?</a>
         </div>
         
         <button type="submit" class="btn" style="width: 100%; margin-top: var(--spacing-sm);">Sign In</button>
@@ -58,10 +64,40 @@ export function initLogin() {
       await signInWithEmailAndPassword(auth, email, password);
       window.location.hash = '#'; 
     } catch (error) {
-      alert(`Login failed: ${error.message}`);
+      // Intercept Firebase errors and make them look nice
+      let friendlyMessage = "An error occurred during login. Please try again.";
+      
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        friendlyMessage = "Incorrect email or password. Please double-check your credentials.";
+      } else if (error.code === 'auth/too-many-requests') {
+        friendlyMessage = "Too many failed login attempts. Please reset your password or try again later.";
+      }
+      
+      alert(friendlyMessage);
     } finally {
       btn.textContent = originalText;
       btn.disabled = false;
     }
   });
+
+  // Password Reset Logic
+  const forgotPasswordLink = document.getElementById('forgot-password-link');
+  if (forgotPasswordLink) {
+    forgotPasswordLink.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const emailInput = document.getElementById('login-email').value;
+      
+      if (!emailInput) {
+        alert("Please enter your email address in the field above first.");
+        return;
+      }
+
+      try {
+        await sendPasswordResetEmail(auth, emailInput);
+        alert(`Password reset link sent to ${emailInput}! Check your inbox.`);
+      } catch (error) {
+        alert("Error: " + error.message);
+      }
+    });
+  }
 }
