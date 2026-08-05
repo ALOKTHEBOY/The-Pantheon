@@ -1,103 +1,113 @@
 import { fetchProducts } from '../services/api.js';
 import { ProductCard } from '../components/ProductCard.js';
-import { debounce } from '../utils/debounce.js';
-
-let allProducts = [];
 
 export function Products() {
   return `
-    <div>
-      <div class="flex-between" style="margin-bottom: var(--spacing-md); flex-wrap: wrap; gap: var(--spacing-sm);">
+    <div style="max-width: 1200px; margin: 2rem auto; padding: 0 1rem;">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
         <h2>All Products</h2>
-        <div style="display: flex; gap: var(--spacing-sm);">
-          <input type="text" id="search-input" placeholder="Search products..." disabled style="padding: var(--spacing-sm); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-surface); width: 250px;">
+        
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <input type="text" id="search-input" placeholder="Search products..." style="padding: 8px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main);">
           
-          <select id="category-filter" disabled style="padding: var(--spacing-sm); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-surface);">
-            <option value="All">All Categories</option>
-            <option value="Electronics">Electronics</option>
-            <option value="Apparel">Apparel</option>
+          <select id="category-filter" style="padding: 8px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main);">
+            <option value="all">All Categories</option>
+            <option value="electronics">Electronics</option>
+            <option value="apparel">Apparel</option>
+            <option value="home">Home</option>
+            <option value="beauty">Beauty & Personal Care</option>
+            <option value="sports">Sports & Outdoors</option>
+            <option value="toys">Toys & Games</option>
+            <option value="books">Books</option>
+            <option value="other">Other</option>
           </select>
 
-          <select id="sort-filter" disabled style="padding: var(--spacing-sm); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-surface);">
+          <select id="sort-filter" style="padding: 8px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main);">
             <option value="default">Sort By</option>
-            <option value="low-high">Price: Low to High</option>
-            <option value="high-low">Price: High to Low</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="name-a-z">Name: A-Z</option>
           </select>
         </div>
       </div>
-      
-      <div class="grid grid-cols-2 grid-cols-4" id="product-grid" style="gap: var(--spacing-md);">
-        <div style="grid-column: 1 / -1; padding: var(--spacing-lg); text-align: center; color: var(--color-text-muted);">
-          Loading catalog...
-        </div>
+
+      <!-- FIXED: Changed grid to use fixed width (280px) to prevent stretching -->
+      <div id="products-grid" style="display: grid; grid-template-columns: repeat(auto-fill, 280px); gap: 2rem; justify-content: center;">
+        <p style="color: var(--color-text-muted);">Loading products...</p>
       </div>
+      
     </div>
   `;
 }
 
 export async function initProducts() {
-  const filterSelect = document.getElementById('category-filter');
-  const sortSelect = document.getElementById('sort-filter');
+  const grid = document.getElementById('products-grid');
   const searchInput = document.getElementById('search-input');
-  const productGrid = document.getElementById('product-grid');
+  const categoryFilter = document.getElementById('category-filter');
+  const sortFilter = document.getElementById('sort-filter');
 
-  if (!filterSelect || !searchInput || !productGrid || !sortSelect) return;
+  if (!grid) return;
+
+  let allProducts = []; 
 
   try {
     allProducts = await fetchProducts();
-    filterSelect.disabled = false;
-    searchInput.disabled = false;
-    sortSelect.disabled = false;
+    render(allProducts); 
+  } catch (error) {
+    grid.innerHTML = `<p style="color: #ef4444;">Failed to load products: ${error.message}</p>`;
+  }
 
-    function updateGrid() {
-      const selectedCategory = filterSelect.value;
-      const searchTerm = searchInput.value.toLowerCase();
-      const sortOption = sortSelect.value;
+  function render(productsToRender) {
+    if (productsToRender.length === 0) {
+      // FIXED: Added Clear Filters Button UI
+      grid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 0;">
+          <h3 style="margin-bottom: 1rem; color: var(--color-text-main);">No products found</h3>
+          <p style="color: var(--color-text-muted); margin-bottom: 1.5rem;">Try adjusting your search or category filter.</p>
+          <button id="clear-filters-btn" class="btn">Clear Filters</button>
+        </div>
+      `;
       
-      // 1. Filter
-      let filteredProducts = allProducts.filter(product => {
-        const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-        const matchesSearch = product.name.toLowerCase().includes(searchTerm);
-        return matchesCategory && matchesSearch;
-      });
-
-      // 2. Sort
-      if (sortOption === 'low-high') {
-        filteredProducts.sort((a, b) => a.price - b.price);
-      } else if (sortOption === 'high-low') {
-        filteredProducts.sort((a, b) => b.price - a.price);
-      }
-
-      // 3. Render
-      if (filteredProducts.length === 0) {
-        productGrid.innerHTML = `
-          <div style="grid-column: 1 / -1; text-align: center; padding: var(--spacing-lg); background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
-            <h3 style="margin-bottom: var(--spacing-sm);">No products found</h3>
-            <p style="color: var(--color-text-muted);">Try adjusting your search or category filter.</p>
-            <button class="btn" id="clear-filters-btn" style="margin-top: var(--spacing-md); width: auto; padding: var(--spacing-sm) var(--spacing-lg);">Clear Filters</button>
-          </div>
-        `;
-        
-        document.getElementById('clear-filters-btn').addEventListener('click', () => {
+      // Wire up the Clear Filters button
+      const clearBtn = document.getElementById('clear-filters-btn');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
           searchInput.value = '';
-          filterSelect.value = 'All';
-          sortSelect.value = 'default';
-          updateGrid();
+          categoryFilter.value = 'all';
+          sortFilter.value = 'default';
+          applyFilters(); // Re-run filters
         });
-        return;
       }
+      return;
+    }
+    grid.innerHTML = productsToRender.map(product => ProductCard(product)).join('');
+  }
 
-      productGrid.innerHTML = filteredProducts.map(product => ProductCard(product)).join('');
+  function applyFilters() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const category = categoryFilter.value;
+    const sortBy = sortFilter.value;
+
+    let filtered = allProducts.filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm);
+      const productCategory = product.category ? product.category.toLowerCase() : 'other';
+      const matchesCategory = category === 'all' || productCategory === category;
+      return matchesSearch && matchesCategory;
+    });
+
+    if (sortBy === 'price-low') {
+      filtered.sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price-high') {
+      filtered.sort((a, b) => b.price - a.price);
+    } else if (sortBy === 'name-a-z') {
+      filtered.sort((a, b) => a.name.localeCompare(b.name));
     }
 
-    updateGrid();
-    filterSelect.addEventListener('change', updateGrid);
-    sortSelect.addEventListener('change', updateGrid);
-    
-    const debouncedSearch = debounce(updateGrid, 300);
-    searchInput.addEventListener('input', debouncedSearch);
-    
-  } catch (error) {
-    productGrid.innerHTML = `<p style="color: #ef4444; grid-column: 1 / -1;">Failed to load catalog.</p>`;
+    render(filtered); 
   }
+
+  if (searchInput) searchInput.addEventListener('input', applyFilters);
+  if (categoryFilter) categoryFilter.addEventListener('change', applyFilters);
+  if (sortFilter) sortFilter.addEventListener('change', applyFilters);
 }
