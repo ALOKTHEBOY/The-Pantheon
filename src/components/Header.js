@@ -44,8 +44,8 @@ export function Header() {
 
             <li><a href="#cart" class="nav-link" id="cart-count">Cart (${totalItems})</a></li>
           </ul>
-          <button id="theme-toggle" class="btn" style="padding: 0.25rem 0.5rem; background: transparent; border: 1px solid var(--color-border); color: var(--color-text-main); font-size: 1.2rem; margin-left: var(--spacing-sm);">
-            ${isDark ? '☀️' : '🌙'}
+          <button id="theme-toggle" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-left: 10px;">
+            🌙
           </button>
         </nav>
       </div>

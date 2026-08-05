@@ -28,6 +28,7 @@ export function Products() {
             <option value="price-low">Price: Low to High</option>
             <option value="price-high">Price: High to Low</option>
             <option value="name-a-z">Name: A-Z</option>
+            <option value="offer">Highest Discount</option>
           </select>
         </div>
       </div>
@@ -102,6 +103,8 @@ export async function initProducts() {
       filtered.sort((a, b) => b.price - a.price);
     } else if (sortBy === 'name-a-z') {
       filtered.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === 'offer') {
+      filtered.sort((a, b) => (b.discountPercentage || 0) - (a.discountPercentage || 0));
     }
 
     render(filtered); 
