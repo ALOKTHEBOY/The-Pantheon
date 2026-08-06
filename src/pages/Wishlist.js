@@ -4,37 +4,36 @@ import { ProductCard } from '../components/ProductCard.js';
 export function Wishlist() {
   const items = wishlistStore.items;
 
+  // Empty State UI
   if (items.length === 0) {
     return `
-      <div style="text-align: center; padding: var(--spacing-lg); background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
-        <h2 style="margin-bottom: var(--spacing-sm);">Your Wishlist is empty</h2>
-        <p style="color: var(--color-text-muted); margin-bottom: var(--spacing-md);">Save items you love to view them later.</p>
-        <a href="#products" class="btn" style="display: inline-block; text-decoration: none;">Browse Products</a>
+      <div style="max-width: 800px; margin: 4rem auto; text-align: center; padding: 0 1rem;">
+        <h2>Your Wishlist is Empty</h2>
+        <p style="color: var(--color-text-muted); margin: 1rem 0;">Explore our catalog and save your favorite items here.</p>
+        <a href="#products" class="btn" style="text-decoration: none; display: inline-block;">Browse Products</a>
       </div>
     `;
   }
 
+  // Populated Grid UI
   return `
-    <div>
-      <h2 style="margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-sm);">My Wishlist</h2>
-      <div class="grid grid-cols-2 grid-cols-4" style="gap: var(--spacing-md);">
-        ${items.map(product => ProductCard(product)).join('')}
+    <div style="max-width: 1200px; margin: 2rem auto; padding: 0 1rem;">
+      <h2 style="margin-bottom: 2rem;">My Wishlist</h2>
+      <div id="wishlist-grid" style="display: grid; grid-template-columns: repeat(auto-fill, 280px); gap: 2rem; justify-content: center;">
+        ${items.map(item => ProductCard(item)).join('')}
       </div>
     </div>
   `;
 }
 
 export function initWishlist() {
-  // The global click listener handles the heart toggle buttons, 
-  // but if a user removes an item while ON the wishlist page, we should re-render it.
-  const container = document.querySelector('#app');
-  
-  container.addEventListener('click', (e) => {
-    if (e.target.closest('.wishlist-toggle-btn') && window.location.hash === '#wishlist') {
-      // Small delay to let the store update first, then refresh the view
-      setTimeout(() => {
-        window.dispatchEvent(new Event('hashchange'));
-      }, 50);
+  // Listen for the global event we dispatched in the store
+  // When a user clicks a heart on this page to remove an item, it instantly re-renders the grid
+  const handleWishlistUpdate = () => {
+    if (window.location.hash === '#wishlist') {
+      window.dispatchEvent(new Event('hashchange')); 
     }
-  });
+  };
+
+  window.addEventListener('wishlistUpdated', handleWishlistUpdate, { once: true });
 }

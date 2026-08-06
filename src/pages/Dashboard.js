@@ -3,9 +3,9 @@ import { collection, addDoc, doc, updateDoc, deleteDoc, getDocs } from 'firebase
 
 export function Dashboard() {
   return `
-    <div style="max-width: 1000px; margin: 2rem auto; display: grid; gap: 2rem; grid-template-columns: 1fr 1fr; align-items: start;">
+    <div style="max-width: 1200px; margin: 2rem auto; display: grid; gap: 2rem; grid-template-columns: 1fr 1fr; align-items: start; padding: 0 1rem;">
       
-      <!-- Left Column -->
+      <!-- Left Column: Add/Edit Product -->
       <div style="padding: var(--spacing-lg); background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
         <h2 id="form-title" style="margin-bottom: var(--spacing-md);">Add New Product</h2>
         <form id="add-product-form" style="display: flex; flex-direction: column; gap: var(--spacing-md);">
@@ -66,7 +66,7 @@ export function Dashboard() {
         </form>
       </div>
 
-      <!-- Right Column -->
+      <!-- Right Column: Manage Products -->
       <div style="padding: var(--spacing-lg); background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
           <h2 style="margin: 0;">Manage Products</h2>
@@ -76,8 +76,16 @@ export function Dashboard() {
             <option value="price-low">Price: Low to High</option>
           </select>
         </div>
-        <div id="dashboard-product-list" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div id="dashboard-product-list" style="display: flex; flex-direction: column; gap: 1rem; max-height: 600px; overflow-y: auto; padding-right: 5px;">
           <p style="color: var(--color-text-muted);">Loading products...</p>
+        </div>
+      </div>
+
+      <!-- Full Width Bottom Row: Incoming Orders -->
+      <div style="grid-column: 1 / -1; padding: var(--spacing-lg); background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border); margin-top: 2rem;">
+        <h2 style="margin-bottom: var(--spacing-md);">Store Orders</h2>
+        <div id="dashboard-orders-list" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <p style="color: var(--color-text-muted);">Loading orders...</p>
         </div>
       </div>
 
@@ -89,6 +97,7 @@ export async function initDashboard() {
   const form = document.getElementById('add-product-form');
   const listContainer = document.getElementById('dashboard-product-list');
   const sortSelect = document.getElementById('dashboard-sort');
+  const ordersListContainer = document.getElementById('dashboard-orders-list');
   
   const origInput = document.getElementById('prod-original-price');
   const discSlider = document.getElementById('prod-discount-slider');
@@ -100,6 +109,7 @@ export async function initDashboard() {
 
   if (!form || !listContainer) return;
 
+  // --- Pricing Calculator ---
   function syncFromOriginalOrSlider() {
     const orig = parseFloat(origInput.value) || 0;
     const disc = parseFloat(discSlider.value) || 0;
@@ -123,6 +133,7 @@ export async function initDashboard() {
   discSlider.addEventListener('input', syncFromOriginalOrSlider);
   finalInput.addEventListener('input', syncFromFinalPrice);
 
+  // --- Product Management ---
   function renderList() {
     let sorted = [...allProducts];
     const sortBy = sortSelect.value;
@@ -137,7 +148,7 @@ export async function initDashboard() {
     }
 
     listContainer.innerHTML = sorted.map(product => `
-      <div class="dashboard-product-row" data-id="${product.id}" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-background); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+      <div class="dashboard-product-row" data-id="${product.id}" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-background); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
         <div style="display: flex; align-items: center; gap: 10px; pointer-events: none;">
           <img src="${product.image || (product.images && product.images[0])}" alt="${product.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
           <div>
@@ -167,7 +178,7 @@ export async function initDashboard() {
   }
 
   await loadProducts();
-  sortSelect.addEventListener('change', renderList);
+  if (sortSelect) sortSelect.addEventListener('change', renderList);
 
   function resetForm() {
     form.reset();
@@ -204,13 +215,13 @@ export async function initDashboard() {
         finalInput.value = product.price;
         document.getElementById('prod-about').value = product.about || '';
         
-        syncFromFinalPrice(); // Automatically update the slider
+        syncFromFinalPrice();
         
         document.getElementById('form-title').textContent = 'Edit Product';
         document.getElementById('submit-btn').textContent = 'Update Product';
         document.getElementById('cancel-edit-btn').style.display = 'block';
         document.getElementById('media-edit-hint').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll up to the form
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } else if (id) {
       window.location.hash = `#product/${id}`;
@@ -284,4 +295,103 @@ export async function initDashboard() {
       btn.disabled = false;
     }
   });
+
+  // --- Order Management (Admin View) ---
+  async function loadOrders() {
+    if (!ordersListContainer) return;
+    try {
+      const snapshot = await getDocs(collection(db, "orders"));
+      let allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      // Sort newest to oldest (safely handle missing dates)
+      allOrders.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+        return dateB - dateA;
+      });
+
+      if (allOrders.length === 0) {
+        ordersListContainer.innerHTML = '<p style="color: var(--color-text-muted);">No orders found.</p>';
+        return;
+      }
+
+      ordersListContainer.innerHTML = allOrders.map(order => {
+        const orderDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'Date Unknown';
+        const name = order.shippingDetails?.fullName || order.customerName || 'Unknown Customer';
+        const email = order.email || order.customerEmail || 'No Email Provided';
+        const phone = order.shippingDetails?.phone || 'No Phone';
+        const address = order.shippingDetails?.address || 'No Address Provided';
+        const city = order.shippingDetails?.city || '';
+        const zip = order.shippingDetails?.zipCode || '';
+        const fullAddress = [address, city, zip].filter(Boolean).join(', ');
+
+        return `
+        <div style="border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 1.5rem; background: var(--color-background); display: flex; flex-direction: column; gap: 1rem;">
+          
+          <!-- FIXED: Top Bar with Compact Button -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">
+            <div>
+              <span style="font-weight: bold; color: var(--color-text-main);">Order ID: ${order.id}</span>
+              <span style="color: var(--color-text-muted); font-size: 0.9rem; margin-left: 10px;">${orderDate}</span>
+            </div>
+            <button class="delete-order-btn" data-id="${order.id}" style="background: #ef4444; color: white; border: none; border-radius: 4px; padding: 6px 12px; font-size: 0.85rem; cursor: pointer; flex-shrink: 0; margin-left: 1rem;">Delete</button>
+          </div>
+
+          <!-- Content Grid -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+            
+            <div>
+              <div style="font-size: 0.85rem; font-weight: bold; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 6px;">Customer Details</div>
+              <div style="font-weight: bold; color: var(--color-text-main);">${name}</div>
+              <div style="font-size: 0.9rem; color: var(--color-text-muted);">${email}</div>
+              <div style="font-size: 0.9rem; color: var(--color-text-muted);">${phone}</div>
+            </div>
+
+            <div>
+              <div style="font-size: 0.85rem; font-weight: bold; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 6px;">Shipping Address</div>
+              <div style="font-size: 0.9rem; color: var(--color-text-main); line-height: 1.4;">${fullAddress}</div>
+            </div>
+
+            <div>
+              <div style="font-size: 0.85rem; font-weight: bold; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 6px;">Items Ordered</div>
+              <ul style="margin: 0; padding-left: 15px; font-size: 0.9rem; color: var(--color-text-main);">
+                ${(order.items || []).map(item => `<li>${item.name} (x${item.quantity})</li>`).join('')}
+              </ul>
+            </div>
+
+            <div style="text-align: right;">
+              <div style="font-size: 0.85rem; font-weight: bold; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 6px;">Total Amount</div>
+              <div style="font-size: 1.8rem; font-weight: bold; color: var(--color-primary);">₹${parseFloat(order.totalAmount || 0).toFixed(2)}</div>
+            </div>
+            
+          </div>
+        </div>
+      `}).join('');
+    } catch (error) {
+      ordersListContainer.innerHTML = '<p style="color: #ef4444;">Error loading orders.</p>';
+    }
+  }
+
+  await loadOrders();
+
+  // --- Action Mode: Delete Order ---
+  if (ordersListContainer) {
+    ordersListContainer.addEventListener('click', async (e) => {
+      if (e.target.classList.contains('delete-order-btn')) {
+        const id = e.target.getAttribute('data-id');
+        if (confirm('Are you sure you want to delete this order?')) {
+          try {
+            e.target.textContent = '...';
+            e.target.disabled = true;
+            await deleteDoc(doc(db, 'orders', id));
+            await loadOrders(); 
+          } catch (error) { 
+            alert("Error deleting order: " + error.message);
+            e.target.textContent = 'Delete Order';
+            e.target.disabled = false;
+          }
+        }
+      }
+    });
+  }
 }
