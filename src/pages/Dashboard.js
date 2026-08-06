@@ -5,6 +5,18 @@ export function Dashboard() {
   return `
     <div style="max-width: 1200px; margin: 2rem auto; display: grid; gap: 2rem; grid-template-columns: 1fr 1fr; align-items: start; padding: 0 1rem;">
       
+      <!-- Analytics Top Row -->
+      <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <div style="padding: 2rem; background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+          <h3 style="color: var(--color-text-muted); margin-bottom: 10px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px;">Total Revenue</h3>
+          <div id="analytics-sales" style="font-size: 3rem; font-weight: bold; color: var(--color-primary);">₹0.00</div>
+        </div>
+        <div style="padding: 2rem; background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+          <h3 style="color: var(--color-text-muted); margin-bottom: 10px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px;">Total Orders</h3>
+          <div id="analytics-orders" style="font-size: 3rem; font-weight: bold; color: var(--color-text-main);">0</div>
+        </div>
+      </div>
+
       <!-- Left Column: Add/Edit Product -->
       <div style="padding: var(--spacing-lg); background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
         <h2 id="form-title" style="margin-bottom: var(--spacing-md);">Add New Product</h2>
@@ -67,16 +79,20 @@ export function Dashboard() {
       </div>
 
       <!-- Right Column: Manage Products -->
-      <div style="padding: var(--spacing-lg); background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
-          <h2 style="margin: 0;">Manage Products</h2>
-          <select id="dashboard-sort" style="padding: 6px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main);">
+      <div style="padding: var(--spacing-lg); background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border); display: flex; flex-direction: column;">
+        <h2 style="margin-bottom: var(--spacing-md);">Manage Products</h2>
+        
+        <!-- NEW: Search and Sort Controls -->
+        <div style="display: flex; gap: 10px; margin-bottom: var(--spacing-md);">
+          <input type="text" id="dashboard-search" placeholder="Search by name..." style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main);">
+          <select id="dashboard-sort" style="padding: 8px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main);">
             <option value="newest">Newest First</option>
             <option value="name">Name A-Z</option>
             <option value="price-low">Price: Low to High</option>
           </select>
         </div>
-        <div id="dashboard-product-list" style="display: flex; flex-direction: column; gap: 1rem; max-height: 600px; overflow-y: auto; padding-right: 5px;">
+
+        <div id="dashboard-product-list" style="display: flex; flex-direction: column; gap: 1rem; max-height: 550px; overflow-y: auto; padding-right: 5px;">
           <p style="color: var(--color-text-muted);">Loading products...</p>
         </div>
       </div>
@@ -97,7 +113,10 @@ export async function initDashboard() {
   const form = document.getElementById('add-product-form');
   const listContainer = document.getElementById('dashboard-product-list');
   const sortSelect = document.getElementById('dashboard-sort');
+  const searchInput = document.getElementById('dashboard-search');
   const ordersListContainer = document.getElementById('dashboard-orders-list');
+  const salesEl = document.getElementById('analytics-sales');
+  const ordersEl = document.getElementById('analytics-orders');
   
   const origInput = document.getElementById('prod-original-price');
   const discSlider = document.getElementById('prod-discount-slider');
@@ -135,19 +154,25 @@ export async function initDashboard() {
 
   // --- Product Management ---
   function renderList() {
-    let sorted = [...allProducts];
-    const sortBy = sortSelect.value;
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
     
-    if (sortBy === 'name') sorted.sort((a, b) => a.name.localeCompare(b.name));
-    else if (sortBy === 'price-low') sorted.sort((a, b) => a.price - b.price);
-    else sorted.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    // 1. Filter by search term
+    let filtered = allProducts.filter(product => 
+      product.name.toLowerCase().includes(searchTerm)
+    );
 
-    if (sorted.length === 0) {
-      listContainer.innerHTML = '<p style="color: var(--color-text-muted);">No products found.</p>';
+    // 2. Apply sorting
+    const sortBy = sortSelect.value;
+    if (sortBy === 'name') filtered.sort((a, b) => a.name.localeCompare(b.name));
+    else if (sortBy === 'price-low') filtered.sort((a, b) => a.price - b.price);
+    else filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+    if (filtered.length === 0) {
+      listContainer.innerHTML = '<p style="color: var(--color-text-muted);">No products match your search.</p>';
       return;
     }
 
-    listContainer.innerHTML = sorted.map(product => `
+    listContainer.innerHTML = filtered.map(product => `
       <div class="dashboard-product-row" data-id="${product.id}" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-background); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
         <div style="display: flex; align-items: center; gap: 10px; pointer-events: none;">
           <img src="${product.image || (product.images && product.images[0])}" alt="${product.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
@@ -178,7 +203,10 @@ export async function initDashboard() {
   }
 
   await loadProducts();
+  
+  // Bind both sort and search inputs to trigger a re-render
   if (sortSelect) sortSelect.addEventListener('change', renderList);
+  if (searchInput) searchInput.addEventListener('input', renderList);
 
   function resetForm() {
     form.reset();
@@ -296,14 +324,22 @@ export async function initDashboard() {
     }
   });
 
-  // --- Order Management (Admin View) ---
+  // --- Order Management & Analytics ---
   async function loadOrders() {
     if (!ordersListContainer) return;
     try {
       const snapshot = await getDocs(collection(db, "orders"));
       let allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       
-      // Sort newest to oldest (safely handle missing dates)
+      // Calculate Analytics
+      let totalRev = 0;
+      allOrders.forEach(order => {
+        totalRev += parseFloat(order.totalAmount || 0);
+      });
+      if (salesEl) salesEl.textContent = '₹' + totalRev.toFixed(2);
+      if (ordersEl) ordersEl.textContent = allOrders.length;
+
+      // Sort newest to oldest
       allOrders.sort((a, b) => {
         const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
         const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
@@ -324,11 +360,11 @@ export async function initDashboard() {
         const city = order.shippingDetails?.city || '';
         const zip = order.shippingDetails?.zipCode || '';
         const fullAddress = [address, city, zip].filter(Boolean).join(', ');
+        const currentStatus = order.status || 'pending';
 
         return `
         <div style="border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 1.5rem; background: var(--color-background); display: flex; flex-direction: column; gap: 1rem;">
           
-          <!-- FIXED: Top Bar with Compact Button -->
           <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">
             <div>
               <span style="font-weight: bold; color: var(--color-text-main);">Order ID: ${order.id}</span>
@@ -337,7 +373,6 @@ export async function initDashboard() {
             <button class="delete-order-btn" data-id="${order.id}" style="background: #ef4444; color: white; border: none; border-radius: 4px; padding: 6px 12px; font-size: 0.85rem; cursor: pointer; flex-shrink: 0; margin-left: 1rem;">Delete</button>
           </div>
 
-          <!-- Content Grid -->
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
             
             <div>
@@ -359,9 +394,20 @@ export async function initDashboard() {
               </ul>
             </div>
 
-            <div style="text-align: right;">
-              <div style="font-size: 0.85rem; font-weight: bold; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 6px;">Total Amount</div>
-              <div style="font-size: 1.8rem; font-weight: bold; color: var(--color-primary);">₹${parseFloat(order.totalAmount || 0).toFixed(2)}</div>
+            <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
+              <div>
+                <div style="font-size: 0.85rem; font-weight: bold; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 6px;">Total Amount</div>
+                <div style="font-size: 1.8rem; font-weight: bold; color: var(--color-primary);">₹${parseFloat(order.totalAmount || 0).toFixed(2)}</div>
+              </div>
+              
+              <div style="width: 100%;">
+                <div style="font-size: 0.75rem; font-weight: bold; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 4px;">Update Status</div>
+                <select class="status-select" data-id="${order.id}" style="padding: 6px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main); width: 100%; font-weight: bold; cursor: pointer;">
+                  <option value="pending" ${currentStatus === 'pending' ? 'selected' : ''}>Pending</option>
+                  <option value="shipped" ${currentStatus === 'shipped' ? 'selected' : ''}>Shipped</option>
+                  <option value="delivered" ${currentStatus === 'delivered' ? 'selected' : ''}>Delivered</option>
+                </select>
+              </div>
             </div>
             
           </div>
@@ -374,8 +420,20 @@ export async function initDashboard() {
 
   await loadOrders();
 
-  // --- Action Mode: Delete Order ---
+  // --- Action Mode: Delete & Update Order ---
   if (ordersListContainer) {
+    ordersListContainer.addEventListener('change', async (e) => {
+      if (e.target.classList.contains('status-select')) {
+        const id = e.target.getAttribute('data-id');
+        const newStatus = e.target.value;
+        try {
+          await updateDoc(doc(db, 'orders', id), { status: newStatus });
+        } catch (error) {
+          alert("Error updating status: " + error.message);
+        }
+      }
+    });
+
     ordersListContainer.addEventListener('click', async (e) => {
       if (e.target.classList.contains('delete-order-btn')) {
         const id = e.target.getAttribute('data-id');
@@ -387,7 +445,7 @@ export async function initDashboard() {
             await loadOrders(); 
           } catch (error) { 
             alert("Error deleting order: " + error.message);
-            e.target.textContent = 'Delete Order';
+            e.target.textContent = 'Delete';
             e.target.disabled = false;
           }
         }

@@ -139,10 +139,18 @@ export async function initProfile() {
         return;
       }
 
-      orderList.innerHTML = orders.map(order => `
+      orderList.innerHTML = orders.map(order => {
+        const statusColors = { pending: '#f59e0b', shipped: '#3b82f6', delivered: '#10b981' };
+        const currentStatus = order.status || 'pending';
+        const badgeColor = statusColors[currentStatus];
+        
+        return `
         <div style="border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 1rem; background: var(--color-background);">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
-            <span style="font-size: 0.85rem; color: var(--color-text-muted);">Order ID: ${order.id}</span>
+            <div>
+              <span style="font-size: 0.85rem; color: var(--color-text-muted);">Order ID: ${order.id}</span>
+              <span style="background: ${badgeColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; margin-left: 10px; text-transform: uppercase;">${currentStatus}</span>
+            </div>
             <span style="font-weight: bold; color: var(--color-primary);">₹${parseFloat(order.totalAmount || 0).toFixed(2)}</span>
           </div>
           <div style="font-size: 0.9rem; margin-bottom: 0.5rem;">
@@ -155,7 +163,7 @@ export async function initProfile() {
             </ul>
           </div>
         </div>
-      `).join('');
+      `}).join('');
 
     } catch (error) {
       orderList.innerHTML = '<p style="color: #ef4444;">Failed to load order history.</p>';
