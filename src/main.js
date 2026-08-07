@@ -35,8 +35,6 @@ import { DashboardAnalytics, initDashboardAnalytics } from './pages/Dashboard/An
 import { ProfileInfo, initProfileInfo } from './pages/Profile/Info.js';
 import { ProfileHistory, initProfileHistory } from './pages/Profile/History.js';
 import { ProfileSettings, initProfileSettings } from './pages/Profile/Settings.js';
-//import { ProfileAnalytics, initProfileAnalytics } from './pages/Profile/Analytics.js';
-//import { ProfileOrders, initProfileOrders } from './pages/Profile/Orders.js';
 
 // --- 2. INITIALIZATION ---
 authStore.init(); // Starts listening to Firebase user session
@@ -141,10 +139,12 @@ window.addEventListener('cartUpdated', () => {
 });
 
 // Refreshes the view when a user logs in or out
-window.addEventListener('authStateChanged', () => {
+window.addEventListener('authStateChanged', async () => {
+  // NEW: Fetch the user's saved wishlist from Firebase before rendering
+  await wishlistStore.loadWishlist(); 
+  
   window.dispatchEvent(new Event('hashchange')); 
 });
-
 
 // --- 5. GLOBAL CLICK DELEGATION ---
 // Handles all click interactions efficiently at the document level

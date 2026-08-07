@@ -18,7 +18,7 @@ export function ProductCard(product) {
         ${heartIcon}
       </button>
 
-      <div style="position: relative; height: 200px; overflow: hidden; cursor: pointer;" onclick="window.location.hash='#product/${product.id}'">
+      <div style="position: relative; height: 200px; overflow: hidden; cursor: pointer;" onclick="window.location.hash='#/product/${product.id}'">
         ${discountBadge}
         <img src="${product.image || (product.images && product.images[0])}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">
       </div>

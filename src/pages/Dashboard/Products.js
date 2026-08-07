@@ -1,5 +1,6 @@
 import { db } from '../../services/firebase.js';
 import { collection, addDoc, doc, updateDoc, deleteDoc, getDocs } from 'firebase/firestore';
+import { showToast } from '../../utils/toast.js';
 
 export function DashboardProducts() {
   return `
@@ -50,13 +51,21 @@ export function DashboardProducts() {
           </div>
 
           <div style="padding: 10px; border: 1px dashed var(--color-border); border-radius: 4px;">
-            <label style="display: block; margin-bottom: 4px; font-weight: bold;">Media</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <label style="font-weight: bold; margin: 0;">Media Manager</label>
+              <button type="button" id="clear-media-btn" style="background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 0.8rem; cursor: pointer;">Clear All</button>
+            </div>
+            
             <label style="display: block; margin-bottom: 4px; font-size: 0.9rem;">Option 1: Paste Image URL</label>
             <input type="url" id="prod-image-url" placeholder="https://example.com/image.jpg" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--color-border); margin-bottom: 10px; background: var(--color-background); color: var(--color-text-main);">
             
             <label style="display: block; margin-bottom: 4px; font-size: 0.9rem;">Option 2: Upload Files (Max 5)</label>
-            <input type="file" id="prod-images" multiple accept="image/*,video/*" style="width: 100%;">
-            <small id="media-edit-hint" style="color: var(--color-text-muted); display: none;">Leave media fields blank to keep existing images.</small>
+            <input type="file" id="prod-images" multiple accept="image/*" style="width: 100%; margin-bottom: 10px;">
+            
+            <!-- Interactive Thumbnail Preview Container -->
+            <div id="media-preview-container" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px;"></div>
+
+            <small id="media-edit-hint" style="color: var(--color-text-muted); display: none; margin-top: 5px;">Leave media fields blank to keep existing images.</small>
           </div>
 
           <div style="display: flex; gap: 10px; margin-top: 10px;">
@@ -93,6 +102,8 @@ export async function initDashboardProducts() {
   const listContainer = document.getElementById('dashboard-product-list');
   const sortSelect = document.getElementById('dashboard-sort');
   const searchInput = document.getElementById('dashboard-search');
+  const fileInput = document.getElementById('prod-images');
+  const previewContainer = document.getElementById('media-preview-container');
   
   const origInput = document.getElementById('prod-original-price');
   const discSlider = document.getElementById('prod-discount-slider');
@@ -103,6 +114,55 @@ export async function initDashboardProducts() {
   let allProducts = [];
 
   if (!form || !listContainer) return;
+
+  // File selection preview & individual removal logic using DataTransfer
+  fileInput.addEventListener('change', () => {
+    renderPreviews();
+  });
+
+  function renderPreviews() {
+    previewContainer.innerHTML = '';
+    const files = fileInput.files;
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const thumbWrapper = document.createElement('div');
+        thumbWrapper.style.cssText = 'position: relative; width: 60px; height: 60px; border-radius: 4px; overflow: hidden; border: 1px solid var(--color-border);';
+        
+        thumbWrapper.innerHTML = `
+          <img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">
+          <button type="button" class="remove-thumb-btn" data-index="${index}" style="position: absolute; top: 2px; right: 2px; background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">×</button>
+        `;
+        previewContainer.appendChild(thumbWrapper);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Handle individual thumbnail deletion via [X] button
+  previewContainer.addEventListener('click', (e) => {
+    if (e.target.classList.contains('remove-thumb-btn')) {
+      const indexToRemove = parseInt(e.target.getAttribute('data-index'));
+      const dt = new DataTransfer();
+      const files = fileInput.files;
+
+      for (let i = 0; i < files.length; i++) {
+        if (i !== indexToRemove) {
+          dt.items.add(files[i]);
+        }
+      }
+      fileInput.files = dt.files;
+      renderPreviews();
+    }
+  });
+
+  document.getElementById('clear-media-btn').addEventListener('click', () => {
+    document.getElementById('prod-image-url').value = '';
+    fileInput.value = '';
+    previewContainer.innerHTML = '';
+  });
 
   function syncFromOriginalOrSlider() {
     const orig = parseFloat(origInput.value) || 0;
@@ -178,6 +238,7 @@ export async function initDashboardProducts() {
 
   function resetForm() {
     form.reset();
+    previewContainer.innerHTML = '';
     editingProductId = null;
     discValText.textContent = '0';
     document.getElementById('form-title').textContent = 'Add New Product';
@@ -228,18 +289,35 @@ export async function initDashboardProducts() {
     e.preventDefault();
     
     const urlInput = document.getElementById('prod-image-url').value.trim();
-    const files = document.getElementById('prod-images').files;
+    const files = fileInput.files;
     let base64Images = [];
 
     if (urlInput !== '') {
       base64Images = [urlInput];
     } else if (files.length > 0) {
       if (files.length > 5) return alert("Maximum 5 files allowed.");
+      
       const imagePromises = Array.from(files).map(file => {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.readAsDataURL(file);
-          reader.onload = () => resolve(reader.result);
+          reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const MAX_WIDTH = 800;
+              let scale = 1;
+              if (img.width > MAX_WIDTH) {
+                scale = MAX_WIDTH / img.width;
+              }
+              canvas.width = img.width * scale;
+              canvas.height = img.height * scale;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              resolve(canvas.toDataURL('image/jpeg', 0.7)); 
+            };
+          };
           reader.onerror = error => reject(error);
         });
       });
