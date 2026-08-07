@@ -14,14 +14,29 @@ import { ProductDetails, initProductDetails } from './pages/ProductDetails.js';
 import { Wishlist, initWishlist } from './pages/Wishlist.js';
 import { Login, initLogin } from './pages/Login.js';
 import { Register, initRegister } from './pages/Register.js';
-import { Profile, initProfile } from './pages/Profile.js';
-import { Dashboard, initDashboard } from './pages/Dashboard.js';
 
 // Stores
 import { cartStore } from './store/cartStore.js';
 import { wishlistStore } from './store/wishlistStore.js';
 import { authStore } from './store/authStore.js';
 import { notificationStore } from './store/notificationStore.js';
+
+// Components
+import { Dropdown, initDropdowns } from './components/Dropdown.js';
+
+// Dashboard Overview
+import { DashboardOverview, initDashboardOverview } from './pages/Dashboard/Overview.js';
+import { DashboardProducts, initDashboardProducts } from './pages/Dashboard/Products.js';
+import { DashboardOrders, initDashboardOrders } from './pages/Dashboard/Orders.js';
+import { DashboardSettings, initDashboardSettings } from './pages/Dashboard/Settings.js';
+import { DashboardAnalytics, initDashboardAnalytics } from './pages/Dashboard/Analytics.js';
+
+// Profile Subpages
+import { ProfileInfo, initProfileInfo } from './pages/Profile/Info.js';
+import { ProfileHistory, initProfileHistory } from './pages/Profile/History.js';
+import { ProfileSettings, initProfileSettings } from './pages/Profile/Settings.js';
+//import { ProfileAnalytics, initProfileAnalytics } from './pages/Profile/Analytics.js';
+//import { ProfileOrders, initProfileOrders } from './pages/Profile/Orders.js';
 
 // --- 2. INITIALIZATION ---
 authStore.init(); // Starts listening to Firebase user session
@@ -30,15 +45,25 @@ const app = document.querySelector("#app");
 // --- 3. ROUTER CONFIGURATION ---
 const routes = {
   '': { render: Home, init: initHome },
-  '#': { render: Home, init: initHome },
-  '#products': { render: Products, init: initProducts },
-  '#wishlist': { render: Wishlist, init: initWishlist },
-  '#cart': { render: Cart, init: initCart },
-  '#checkout': { render: Checkout, init: initCheckout },
-  '#login': { render: Login, init: initLogin },
-  '#register': { render: Register, init: initRegister },
-  '#profile': { render: Profile, init: initProfile },
-  '#dashboard': { render: Dashboard, init: initDashboard }, // <-- Add this line
+  '#/': { render: Home, init: initHome },
+  '#/products': { render: Products, init: initProducts },
+  '#/wishlist': { render: Wishlist, init: initWishlist },
+  '#/cart': { render: Cart, init: initCart },
+  '#/checkout': { render: Checkout, init: initCheckout },
+  '#/login': { render: Login, init: initLogin },
+  '#/register': { render: Register, init: initRegister },
+  
+  // Modular Profile Routes
+  '#/profile': { render: ProfileInfo, init: initProfileInfo },
+  '#/profile/orders': { render: ProfileHistory, init: initProfileHistory }, // NEW: Order History Module
+  '#/profile/settings': { render: ProfileSettings, init: initProfileSettings }, // FINAL: Settings Module
+  
+  // FINAL: Modular Dashboard Routes
+  '#/dashboard': { render: DashboardOverview, init: initDashboardOverview },
+  '#/dashboard/analytics': { render: DashboardOverview, init: initDashboardOverview },
+  '#/dashboard/products': { render: DashboardProducts, init: initDashboardProducts },
+  '#/dashboard/orders': { render: DashboardOrders, init: initDashboardOrders }, 
+  '#/dashboard/settings': { render: DashboardSettings, init: initDashboardSettings },
 };
 
 // Helper: Highlights the active link in the navigation bar
@@ -46,7 +71,7 @@ function updateActiveNavLink(currentPath) {
   const links = document.querySelectorAll('.nav-link');
   links.forEach(link => {
     link.classList.remove('active');
-    const targetPath = currentPath === '' ? '#' : currentPath;
+    const targetPath = currentPath === '' ? '#/' : currentPath;
     if (link.getAttribute('href') === targetPath) {
       link.classList.add('active');
     }
@@ -55,34 +80,34 @@ function updateActiveNavLink(currentPath) {
 
 // Core Router Logic
 function router() {
-  const path = window.location.hash;
+  let path = window.location.hash;
+  if (path === '#' || path === '') path = '#/';
   
   // Handle Dynamic Product Details Route
-  if (path.startsWith('#product/')) {
-    const productId = path.split('/')[1]; 
+  if (path.startsWith('#/product/')) {
+    const productId = path.split('/')[2]; 
     app.innerHTML = Layout(ProductDetails()); 
     initProductDetails(productId); 
-    updateActiveNavLink('#products'); 
+    updateActiveNavLink('#/products'); 
     return; 
   }
 
   // Handle Protected Routes (Security Check)
-  const protectedRoutes = ['#profile', '#dashboard']; // <-- Update this line
-  if (protectedRoutes.includes(path) && !authStore.user) {
-    window.location.hash = '#login'; // Redirect unauthorized users
+  if ((path.startsWith('#/profile') || path.startsWith('#/dashboard')) && !authStore.user) {
+    window.location.hash = '#/login'; 
     return; 
   }
 
   // Admin-only Route Protection
-  const adminEmail = 'alokb7837@gmail.com'; // Must match the one in Header.js
-  if (path === '#dashboard' && authStore.user.email !== adminEmail) {
+  const adminEmail = 'alokb7837@gmail.com'; 
+  if (path.startsWith('#/dashboard') && authStore.user.email !== adminEmail) {
     alert("Access Denied: Admins Only");
-    window.location.hash = '#'; // Kick them back to the home page
+    window.location.hash = '#/'; 
     return;
   }
 
   // Handle Standard Routes
-  const route = routes[path] || routes[''];
+  const route = routes[path] || routes['#/'];
   app.innerHTML = Layout(route.render());
   
   if (route.init) {
@@ -99,9 +124,9 @@ window.addEventListener('hashchange', router);
 // Initial page load setup
 window.addEventListener('DOMContentLoaded', () => {
   router();
-  window.dispatchEvent(new CustomEvent('cartUpdated')); // Hydrates cart count
+  window.dispatchEvent(new CustomEvent('cartUpdated')); 
+  initDropdowns(); // NEW: Activates the mobile-click listeners for dropdowns
   
-  // Restores user's preferred theme
   if (localStorage.getItem('theme') === 'dark') {
     document.body.classList.add('dark-mode');
   }
@@ -151,8 +176,9 @@ document.addEventListener('click', async (e) => {
     return; 
   }
 
-  // Logout Logic
-  if (e.target.id === 'logout-btn') {
+  // UPDATED: Logout Logic (Now catches the dropdown link instead of a button ID)
+  if (e.target.getAttribute('href') === '#/logout') {
+    e.preventDefault(); // Prevents the router from trying to load a '#logout' page
     authStore.logout();
     return;
   }

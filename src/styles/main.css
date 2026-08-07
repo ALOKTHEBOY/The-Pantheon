@@ -21,3 +21,104 @@ body {
   flex-direction: column;
   min-height: 100vh;
 }
+
+/* ==========================================================================
+   Reusable Navigation Dropdown Styles
+   ========================================================================== */
+
+/* Outer wrapper positioning */
+.dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Parent button/link trigger */
+.dropdown-toggle {
+  background: transparent;
+  border: none;
+  color: var(--color-text-main);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-toggle:hover {
+  background-color: var(--color-border, rgba(0, 0, 0, 0.05));
+}
+
+/* Small chevron indicator */
+.dropdown-chevron {
+  font-size: 0.65rem;
+  transition: transform 0.2s ease;
+  opacity: 0.7;
+}
+
+/* Submenu container (Hidden by default) */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0; /* Aligns to right edge; change to left: 0 if needed */
+  min-width: 190px;
+  margin-top: 0.4rem;
+  padding: 0.5rem 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  z-index: 1000;
+  
+  /* Smooth Fade & Slide Transitions */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+}
+
+/* Individual Submenu Links */
+.dropdown-item {
+  display: block;
+  padding: 0.65rem 1rem;
+  color: var(--color-text-main);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background-color: var(--color-background, rgba(0, 0, 0, 0.03));
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Interaction States (Desktop Hover + Mobile Click)
+   ========================================================================== */
+
+/* 1. Desktop Hover Trigger (Applies only on devices with true hover support) */
+@media (hover: hover) and (pointer: fine) {
+  .dropdown-wrapper:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .dropdown-wrapper:hover .dropdown-chevron {
+    transform: rotate(180deg);
+  }
+}
+
+/* 2. Programmatic Active Class (For Mobile Clicks or Fallbacks) */
+.dropdown-wrapper.is-active .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-wrapper.is-active .dropdown-chevron {
+  transform: rotate(180deg);
+}

@@ -1,22 +1,10 @@
-import { db } from '../services/firebase.js';
+import { db } from '../../services/firebase.js';
 import { collection, addDoc, doc, updateDoc, deleteDoc, getDocs } from 'firebase/firestore';
 
-export function Dashboard() {
+export function DashboardProducts() {
   return `
     <div style="max-width: 1200px; margin: 2rem auto; display: grid; gap: 2rem; grid-template-columns: 1fr 1fr; align-items: start; padding: 0 1rem;">
       
-      <!-- Analytics Top Row -->
-      <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-        <div style="padding: 2rem; background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-          <h3 style="color: var(--color-text-muted); margin-bottom: 10px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px;">Total Revenue</h3>
-          <div id="analytics-sales" style="font-size: 3rem; font-weight: bold; color: var(--color-primary);">₹0.00</div>
-        </div>
-        <div style="padding: 2rem; background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-          <h3 style="color: var(--color-text-muted); margin-bottom: 10px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px;">Total Orders</h3>
-          <div id="analytics-orders" style="font-size: 3rem; font-weight: bold; color: var(--color-text-main);">0</div>
-        </div>
-      </div>
-
       <!-- Left Column: Add/Edit Product -->
       <div style="padding: var(--spacing-lg); background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
         <h2 id="form-title" style="margin-bottom: var(--spacing-md);">Add New Product</h2>
@@ -82,7 +70,6 @@ export function Dashboard() {
       <div style="padding: var(--spacing-lg); background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border); display: flex; flex-direction: column;">
         <h2 style="margin-bottom: var(--spacing-md);">Manage Products</h2>
         
-        <!-- NEW: Search and Sort Controls -->
         <div style="display: flex; gap: 10px; margin-bottom: var(--spacing-md);">
           <input type="text" id="dashboard-search" placeholder="Search by name..." style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main);">
           <select id="dashboard-sort" style="padding: 8px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main);">
@@ -97,26 +84,15 @@ export function Dashboard() {
         </div>
       </div>
 
-      <!-- Full Width Bottom Row: Incoming Orders -->
-      <div style="grid-column: 1 / -1; padding: var(--spacing-lg); background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border); margin-top: 2rem;">
-        <h2 style="margin-bottom: var(--spacing-md);">Store Orders</h2>
-        <div id="dashboard-orders-list" style="display: flex; flex-direction: column; gap: 1.5rem;">
-          <p style="color: var(--color-text-muted);">Loading orders...</p>
-        </div>
-      </div>
-
     </div>
   `;
 }
 
-export async function initDashboard() {
+export async function initDashboardProducts() {
   const form = document.getElementById('add-product-form');
   const listContainer = document.getElementById('dashboard-product-list');
   const sortSelect = document.getElementById('dashboard-sort');
   const searchInput = document.getElementById('dashboard-search');
-  const ordersListContainer = document.getElementById('dashboard-orders-list');
-  const salesEl = document.getElementById('analytics-sales');
-  const ordersEl = document.getElementById('analytics-orders');
   
   const origInput = document.getElementById('prod-original-price');
   const discSlider = document.getElementById('prod-discount-slider');
@@ -128,7 +104,6 @@ export async function initDashboard() {
 
   if (!form || !listContainer) return;
 
-  // --- Pricing Calculator ---
   function syncFromOriginalOrSlider() {
     const orig = parseFloat(origInput.value) || 0;
     const disc = parseFloat(discSlider.value) || 0;
@@ -152,17 +127,11 @@ export async function initDashboard() {
   discSlider.addEventListener('input', syncFromOriginalOrSlider);
   finalInput.addEventListener('input', syncFromFinalPrice);
 
-  // --- Product Management ---
   function renderList() {
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-    
-    // 1. Filter by search term
-    let filtered = allProducts.filter(product => 
-      product.name.toLowerCase().includes(searchTerm)
-    );
-
-    // 2. Apply sorting
+    let filtered = allProducts.filter(product => product.name.toLowerCase().includes(searchTerm));
     const sortBy = sortSelect.value;
+    
     if (sortBy === 'name') filtered.sort((a, b) => a.name.localeCompare(b.name));
     else if (sortBy === 'price-low') filtered.sort((a, b) => a.price - b.price);
     else filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
@@ -204,7 +173,6 @@ export async function initDashboard() {
 
   await loadProducts();
   
-  // Bind both sort and search inputs to trigger a re-render
   if (sortSelect) sortSelect.addEventListener('change', renderList);
   if (searchInput) searchInput.addEventListener('input', renderList);
 
@@ -252,7 +220,7 @@ export async function initDashboard() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } else if (id) {
-      window.location.hash = `#product/${id}`;
+      window.location.hash = `#/product/${id}`;
     }
   });
 
@@ -306,11 +274,11 @@ export async function initDashboard() {
 
       if (editingProductId) {
         await updateDoc(doc(db, "products", editingProductId), payload);
-        alert("Product updated successfully!");
+        showToast("Product updated successfully!");
       } else {
         payload.createdAt = new Date().toISOString();
         await addDoc(collection(db, "products"), payload);
-        alert("Product added successfully!");
+        showToast("Product added successfully!");
       }
 
       resetForm();
@@ -323,133 +291,4 @@ export async function initDashboard() {
       btn.disabled = false;
     }
   });
-
-  // --- Order Management & Analytics ---
-  async function loadOrders() {
-    if (!ordersListContainer) return;
-    try {
-      const snapshot = await getDocs(collection(db, "orders"));
-      let allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      // Calculate Analytics
-      let totalRev = 0;
-      allOrders.forEach(order => {
-        totalRev += parseFloat(order.totalAmount || 0);
-      });
-      if (salesEl) salesEl.textContent = '₹' + totalRev.toFixed(2);
-      if (ordersEl) ordersEl.textContent = allOrders.length;
-
-      // Sort newest to oldest
-      allOrders.sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
-        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
-        return dateB - dateA;
-      });
-
-      if (allOrders.length === 0) {
-        ordersListContainer.innerHTML = '<p style="color: var(--color-text-muted);">No orders found.</p>';
-        return;
-      }
-
-      ordersListContainer.innerHTML = allOrders.map(order => {
-        const orderDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'Date Unknown';
-        const name = order.shippingDetails?.fullName || order.customerName || 'Unknown Customer';
-        const email = order.email || order.customerEmail || 'No Email Provided';
-        const phone = order.shippingDetails?.phone || 'No Phone';
-        const address = order.shippingDetails?.address || 'No Address Provided';
-        const city = order.shippingDetails?.city || '';
-        const zip = order.shippingDetails?.zipCode || '';
-        const fullAddress = [address, city, zip].filter(Boolean).join(', ');
-        const currentStatus = order.status || 'pending';
-
-        return `
-        <div style="border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 1.5rem; background: var(--color-background); display: flex; flex-direction: column; gap: 1rem;">
-          
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">
-            <div>
-              <span style="font-weight: bold; color: var(--color-text-main);">Order ID: ${order.id}</span>
-              <span style="color: var(--color-text-muted); font-size: 0.9rem; margin-left: 10px;">${orderDate}</span>
-            </div>
-            <button class="delete-order-btn" data-id="${order.id}" style="background: #ef4444; color: white; border: none; border-radius: 4px; padding: 6px 12px; font-size: 0.85rem; cursor: pointer; flex-shrink: 0; margin-left: 1rem;">Delete</button>
-          </div>
-
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-            
-            <div>
-              <div style="font-size: 0.85rem; font-weight: bold; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 6px;">Customer Details</div>
-              <div style="font-weight: bold; color: var(--color-text-main);">${name}</div>
-              <div style="font-size: 0.9rem; color: var(--color-text-muted);">${email}</div>
-              <div style="font-size: 0.9rem; color: var(--color-text-muted);">${phone}</div>
-            </div>
-
-            <div>
-              <div style="font-size: 0.85rem; font-weight: bold; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 6px;">Shipping Address</div>
-              <div style="font-size: 0.9rem; color: var(--color-text-main); line-height: 1.4;">${fullAddress}</div>
-            </div>
-
-            <div>
-              <div style="font-size: 0.85rem; font-weight: bold; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 6px;">Items Ordered</div>
-              <ul style="margin: 0; padding-left: 15px; font-size: 0.9rem; color: var(--color-text-main);">
-                ${(order.items || []).map(item => `<li>${item.name} (x${item.quantity})</li>`).join('')}
-              </ul>
-            </div>
-
-            <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
-              <div>
-                <div style="font-size: 0.85rem; font-weight: bold; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 6px;">Total Amount</div>
-                <div style="font-size: 1.8rem; font-weight: bold; color: var(--color-primary);">₹${parseFloat(order.totalAmount || 0).toFixed(2)}</div>
-              </div>
-              
-              <div style="width: 100%;">
-                <div style="font-size: 0.75rem; font-weight: bold; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 4px;">Update Status</div>
-                <select class="status-select" data-id="${order.id}" style="padding: 6px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main); width: 100%; font-weight: bold; cursor: pointer;">
-                  <option value="pending" ${currentStatus === 'pending' ? 'selected' : ''}>Pending</option>
-                  <option value="shipped" ${currentStatus === 'shipped' ? 'selected' : ''}>Shipped</option>
-                  <option value="delivered" ${currentStatus === 'delivered' ? 'selected' : ''}>Delivered</option>
-                </select>
-              </div>
-            </div>
-            
-          </div>
-        </div>
-      `}).join('');
-    } catch (error) {
-      ordersListContainer.innerHTML = '<p style="color: #ef4444;">Error loading orders.</p>';
-    }
-  }
-
-  await loadOrders();
-
-  // --- Action Mode: Delete & Update Order ---
-  if (ordersListContainer) {
-    ordersListContainer.addEventListener('change', async (e) => {
-      if (e.target.classList.contains('status-select')) {
-        const id = e.target.getAttribute('data-id');
-        const newStatus = e.target.value;
-        try {
-          await updateDoc(doc(db, 'orders', id), { status: newStatus });
-        } catch (error) {
-          alert("Error updating status: " + error.message);
-        }
-      }
-    });
-
-    ordersListContainer.addEventListener('click', async (e) => {
-      if (e.target.classList.contains('delete-order-btn')) {
-        const id = e.target.getAttribute('data-id');
-        if (confirm('Are you sure you want to delete this order?')) {
-          try {
-            e.target.textContent = '...';
-            e.target.disabled = true;
-            await deleteDoc(doc(db, 'orders', id));
-            await loadOrders(); 
-          } catch (error) { 
-            alert("Error deleting order: " + error.message);
-            e.target.textContent = 'Delete';
-            e.target.disabled = false;
-          }
-        }
-      }
-    });
-  }
 }
