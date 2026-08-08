@@ -26,10 +26,11 @@ import { Dropdown, initDropdowns } from './components/Dropdown.js';
 
 // Dashboard Overview
 import { DashboardOverview, initDashboardOverview } from './pages/Dashboard/Overview.js';
-import { DashboardProducts, initDashboardProducts } from './pages/Dashboard/Products.js';
 import { DashboardOrders, initDashboardOrders } from './pages/Dashboard/Orders.js';
 import { DashboardSettings, initDashboardSettings } from './pages/Dashboard/Settings.js';
 import { DashboardAnalytics, initDashboardAnalytics } from './pages/Dashboard/Analytics.js';
+import { DashboardProductList, initDashboardProductList } from './pages/Dashboard/ProductList.js';
+import { DashboardProductForm, initDashboardProductForm } from './pages/Dashboard/ProductForm.js';
 
 // Profile Subpages
 import { ProfileInfo, initProfileInfo } from './pages/Profile/Info.js';
@@ -59,7 +60,8 @@ const routes = {
   // FINAL: Modular Dashboard Routes
   '#/dashboard': { render: DashboardOverview, init: initDashboardOverview },
   '#/dashboard/analytics': { render: DashboardOverview, init: initDashboardOverview },
-  '#/dashboard/products': { render: DashboardProducts, init: initDashboardProducts },
+  '#/dashboard/products': { render: DashboardProductList, init: initDashboardProductList },
+  '#/dashboard/products/add': { render: DashboardProductForm, init: () => initDashboardProductForm(null) },
   '#/dashboard/orders': { render: DashboardOrders, init: initDashboardOrders }, 
   '#/dashboard/settings': { render: DashboardSettings, init: initDashboardSettings },
 };
@@ -81,12 +83,20 @@ function router() {
   let path = window.location.hash;
   if (path === '#' || path === '') path = '#/';
   
-  // Handle Dynamic Product Details Route
+  // Handle Dynamic Product Details Route (Customer View)
   if (path.startsWith('#/product/')) {
     const productId = path.split('/')[2]; 
     app.innerHTML = Layout(ProductDetails()); 
     initProductDetails(productId); 
     updateActiveNavLink('#/products'); 
+    return; 
+  }
+
+  // NEW: Catch Admin Edit Product Route (Admin View)
+  if (path.startsWith('#/dashboard/products/edit/')) {
+    const productId = path.split('/').pop(); // Extracts the ID from the URL
+    app.innerHTML = Layout(DashboardProductForm()); // Render the Form
+    initDashboardProductForm(productId); // Initialize with the ID so it fetches data
     return; 
   }
 
