@@ -33,42 +33,6 @@ NovaCart Pro is a modern, modular Single Page Application (SPA) built to demonst
 *   **Firebase Authentication:** Secure email/password login, registration, and user profile management.
 *   **Cloud Firestore:** NoSQL document database storing `users`, `products`, and `orders`.
 
-## 📂 Project Structure
-
-\`\`\`text
-src/
-├── assets/         # Static images and icons
-├── components/     # Reusable UI parts (Navbar, CartItem)
-├── pages/          # Route-level modules
-│   ├── Dashboard/  # Admin-only views (ProductList, ProductForm, Orders)
-│   ├── Profile/    # Authenticated user views (History, Settings)
-│   └── ...         # Public views (Home, Products, Checkout)
-├── services/       # Firebase initialization and API wrappers
-├── store/          # Global state management logic
-├── styles/         # Modular CSS architecture
-├── utils/          # Helper functions (Currency formatting, Toasts)
-└── main.js         # Application entry point & Router
-\`\`\`
-
-## 🚀 How to Run Locally
-
-1.  **Clone the repository:**
-    \`\`\`bash
-    git clone https://github.com/YOUR-USERNAME/novacart-pro.git
-    cd novacart-pro
-    \`\`\`
-2.  **Install dependencies:**
-    \`\`\`bash
-    npm install
-    \`\`\`
-3.  **Configure Firebase:**
-    *   Create a `.env` file in the root directory.
-    *   Add your Firebase config keys (e.g., `VITE_FIREBASE_API_KEY=your_key`).
-4.  **Start the development server:**
-    \`\`\`bash
-    npm run dev
-    \`\`\`
-
 ## ⚠️ Known Limitations (Free-Tier Architecture)
 
 To keep this project entirely free to host and run, the following architectural compromises were made:
