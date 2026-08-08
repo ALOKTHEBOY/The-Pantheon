@@ -28,6 +28,8 @@ export function DashboardProductForm() {
                   <option value="home">Home</option>
                   <option value="beauty">Beauty & Personal Care</option>
                   <option value="sports">Sports & Outdoors</option>
+                  <option value="toys">Toys & Games</option>
+                  <option value="books">Books</option>
                   <option value="other">Other</option>
                 </select>
               </div>

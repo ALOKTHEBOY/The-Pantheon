@@ -14,7 +14,7 @@ export function Checkout() {
       <div style="max-width: 800px; margin: 4rem auto; text-align: center;">
         <h2>Your cart is empty</h2>
         <p style="color: var(--color-text-muted); margin: 1rem 0;">Add some products before proceeding to checkout.</p>
-        <a href="#products" class="btn" style="text-decoration: none; display: inline-block;">Browse Products</a>
+        <a href="#/products" class="btn" style="text-decoration: none; display: inline-block;">Browse Products</a>
       </div>
     `;
   }
@@ -87,7 +87,7 @@ export function initCheckout() {
     
     if (!authStore.user) {
       alert("Please log in to place an order.");
-      window.location.hash = '#login';
+      window.location.hash = '#/login';
       return;
     }
 
@@ -122,7 +122,7 @@ export function initCheckout() {
       
       cartStore.clearCart();
       alert("Order placed successfully!");
-      window.location.hash = '#profile'; 
+      window.location.hash = '#/profile/orders'; 
 
     } catch (error) {
       alert("Error placing order: " + error.message);
