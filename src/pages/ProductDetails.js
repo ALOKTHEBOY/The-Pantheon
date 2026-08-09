@@ -70,7 +70,14 @@ export async function initProductDetails(productId) {
           <div style="font-size: 0.9rem; text-transform: uppercase; color: var(--color-text-muted); letter-spacing: 1px; margin-bottom: 5px;">
             ${product.category || 'Other'}
           </div>
-          <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem; line-height: 1.2; overflow-wrap: break-word; word-wrap: break-word; hyphens: auto;">${product.name}</h1>
+          
+          <!-- UPGRADED: Title with CSS Line Clamp & Expand Button -->
+          <div style="margin-bottom: 0.5rem;">
+            <h1 id="product-title-content" title="${product.name}" style="font-size: clamp(1.6rem, 5vw, 2.2rem); margin: 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; transition: all 0.3s ease;">
+              ${product.name}
+            </h1>
+            <button id="toggle-title-btn" style="background: none; border: none; color: var(--color-primary); cursor: pointer; padding: 4px 0 0 0; font-size: 0.85rem; font-weight: bold; display: none;">Show full name</button>
+          </div>
           
           <!-- Trust Indicators -->
           <div style="display: flex; gap: 15px; margin-bottom: 1.5rem; font-size: 0.85rem; color: #10b981; font-weight: bold; flex-wrap: wrap;">
@@ -90,14 +97,20 @@ export async function initProductDetails(productId) {
             </div>
           </div>
 
-          <!-- Quantity & Add to Cart -->
-          <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
-            <div style="display: flex; align-items: center; border: 1px solid var(--color-border); border-radius: 4px; overflow: hidden; background: var(--color-surface);">
+          <!-- UPGRADED: Quantity, Add to Cart & Buy Now -->
+          <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; flex-wrap: wrap;">
+            
+            <div style="display: flex; align-items: center; border: 1px solid var(--color-border); border-radius: 4px; overflow: hidden; background: var(--color-surface); flex-shrink: 0;">
               <button id="qty-minus" style="padding: 10px 15px; background: none; border: none; cursor: pointer; font-size: 1.2rem;">-</button>
               <span id="qty-display" style="padding: 10px 15px; font-weight: bold; min-width: 40px; text-align: center;">1</span>
               <button id="qty-plus" style="padding: 10px 15px; background: none; border: none; cursor: pointer; font-size: 1.2rem;">+</button>
             </div>
-            <button id="add-to-cart-detail" class="btn" style="flex: 1; font-size: 1.1rem;">Add to Cart</button>
+            
+            <div style="display: flex; gap: 0.75rem; flex: 1; min-width: 250px;">
+              <button id="add-to-cart-detail" class="btn" style="flex: 1; font-size: 1rem; background: var(--color-surface); color: var(--color-primary); border: 2px solid var(--color-primary);">Add to Cart</button>
+              <button id="buy-now-btn" class="btn" style="flex: 1; font-size: 1rem;">Buy Now</button>
+            </div>
+            
           </div>
 
           <!-- NEW: Key Highlights Section (Safe Fallback) -->
@@ -227,27 +240,48 @@ export async function initProductDetails(productId) {
       });
     }
 
-    // 2. Upgraded Add to Cart (Using Adapter Loop)
+    // 2. Upgraded Add to Cart (Fixed UI Reset)
     if (addToCartBtn) {
       addToCartBtn.addEventListener('click', () => {
-        // Adapt to existing cartStore by looping the standard function
         for (let i = 0; i < currentQty; i++) {
           cartStore.addToCart(product);
         }
         
-        // Visual feedback
+        // Cache the exact original styles
         const originalText = addToCartBtn.textContent;
-        addToCartBtn.textContent = '✓ Added to Cart';
-        addToCartBtn.style.background = '#10b981'; // Success Green
+        const origBg = addToCartBtn.style.background;
+        const origColor = addToCartBtn.style.color;
+        const origBorder = addToCartBtn.style.border;
+
+        // Apply success state
+        addToCartBtn.textContent = '✓ Added';
+        addToCartBtn.style.background = '#10b981';
+        addToCartBtn.style.color = 'white';
+        addToCartBtn.style.border = '2px solid #10b981';
         
         setTimeout(() => {
+          // Safely restore the original styles
           addToCartBtn.textContent = originalText;
-          addToCartBtn.style.background = ''; // Reset to default CSS
+          addToCartBtn.style.background = origBg;
+          addToCartBtn.style.color = origColor;
+          addToCartBtn.style.border = origBorder;
         }, 2000);
 
-        // Reset quantity for the next action
         currentQty = 1;
         qtyDisplay.textContent = currentQty;
+      });
+    }
+
+    // 3. UPGRADED: Buy Now Button Logic (Session Storage Override)
+    const buyNowBtn = document.getElementById('buy-now-btn');
+    if (buyNowBtn) {
+      buyNowBtn.addEventListener('click', () => {
+        // Create a direct-buy package and save it temporarily
+        const directItem = { ...product, quantity: currentQty };
+        sessionStorage.setItem('buyNowItem', JSON.stringify(directItem));
+        
+        // Go straight to checkout (Bypassing the cart store)
+        window.location.hash = '#/checkout';
       });
     }
 
@@ -275,7 +309,6 @@ export async function initProductDetails(productId) {
 
     // 4. (Keep the existing Read More toggle logic here)
     const readMoreBtn = document.getElementById('read-more-btn');
-    
     const aboutContent = document.getElementById('about-text-content');
     
     if (readMoreBtn && aboutContent) {
@@ -292,6 +325,30 @@ export async function initProductDetails(productId) {
           }
         });
       }
+    }
+
+    // 5. Title Expand/Collapse Logic
+    const titleContent = document.getElementById('product-title-content');
+    const toggleTitleBtn = document.getElementById('toggle-title-btn');
+    
+    if (titleContent && toggleTitleBtn) {
+      // Use a slight timeout to ensure the DOM has painted the fonts correctly before measuring
+      setTimeout(() => {
+        // If the actual height is greater than the visible clamped height, it means it was truncated
+        if (titleContent.scrollHeight > titleContent.clientHeight) {
+          toggleTitleBtn.style.display = 'inline-block';
+          
+          toggleTitleBtn.addEventListener('click', () => {
+            if (titleContent.style.webkitLineClamp === '2') {
+              titleContent.style.webkitLineClamp = 'unset';
+              toggleTitleBtn.textContent = 'Hide full name';
+            } else {
+              titleContent.style.webkitLineClamp = '2';
+              toggleTitleBtn.textContent = 'Show full name';
+            }
+          });
+        }
+      }, 100);
     }
 
   } catch (error) {

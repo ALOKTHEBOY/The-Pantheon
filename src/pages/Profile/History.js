@@ -27,10 +27,12 @@ export async function initProfileHistory() {
   }
 
   try {
-    const q = query(collection(db, "orders"), where("email", "==", user.email));
+    // ARCHITECTURAL FIX: Query by the immutable secure userId (UID), not the email!
+    const q = query(collection(db, "orders"), where("userId", "==", user.uid));
     const snapshot = await getDocs(q);
     let userOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
+    // Sort by newest first
     userOrders.sort((a, b) => {
       const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
       const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
@@ -48,7 +50,7 @@ export async function initProfileHistory() {
       const statusColor = status === 'delivered' ? '#10b981' : (status === 'shipped' ? '#3b82f6' : '#f59e0b');
 
       return `
-        <div style="border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 1.5rem; background: var(--color-background);">
+        <div style="border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 1.5rem; background: var(--color-background); margin-bottom: 1rem;">
           
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-border); padding-bottom: 1rem; margin-bottom: 1rem;">
             <div>
@@ -76,6 +78,8 @@ export async function initProfileHistory() {
     }).join('');
 
   } catch (error) {
-    ordersListContainer.innerHTML = '<p style="color: #ef4444;">Error loading order history.</p>';
+    // MENTOR FIX: Never swallow errors. Always log them so we can debug!
+    console.error("Order History Debugger - Failure Reason:", error);
+    ordersListContainer.innerHTML = `<p style="color: #ef4444;">Error loading order history: ${error.message}</p>`;
   }
 }

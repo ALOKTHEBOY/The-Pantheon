@@ -7,10 +7,11 @@ export function Wishlist() {
   // Empty State UI
   if (items.length === 0) {
     return `
-      <div style="max-width: 800px; margin: 4rem auto; text-align: center; padding: 0 1rem;">
+      <div style="max-width: 800px; margin: 4rem auto; text-align: center; padding: 2rem;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🤍</div>
         <h2>Your Wishlist is Empty</h2>
-        <p style="color: var(--color-text-muted); margin: 1rem 0;">Explore our catalog and save your favorite items here.</p>
-        <a href="#products" class="btn" style="text-decoration: none; display: inline-block;">Browse Products</a>
+        <p style="color: var(--color-text-muted); margin: 1rem 0;">Save your favorite items here to buy them later.</p>
+        <a href="#/products" class="btn" style="text-decoration: none; display: inline-block; padding: 12px 24px;">Discover Products</a>
       </div>
     `;
   }

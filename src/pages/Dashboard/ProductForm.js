@@ -113,6 +113,8 @@ export async function initDashboardProductForm(productId = null) {
   const videoInput = document.getElementById('prod-video-url');
   const highlightsInput = document.getElementById('prod-highlights');
 
+  let primaryImageIndex = 0; // NEW: Tracks which image is the main thumbnail
+
   if (!form) return;
 
   // --- PRE-FILL DATA IF EDITING ---
@@ -145,15 +147,31 @@ export async function initDashboardProductForm(productId = null) {
   function renderPreviews() {
     previewContainer.innerHTML = '';
     const files = fileInput.files;
-    if (!files || files.length === 0) return;
+    
+    if (!files || files.length === 0) {
+      primaryImageIndex = 0; // Reset if cleared
+      return;
+    }
+
+    // Fallback if the selected primary image gets deleted
+    if (primaryImageIndex >= files.length) primaryImageIndex = 0;
 
     Array.from(files).forEach((file, index) => {
       const reader = new FileReader();
       reader.onload = (e) => {
+        const isPrimary = index === primaryImageIndex;
+        
         const thumbWrapper = document.createElement('div');
-        thumbWrapper.style.cssText = 'position: relative; width: 60px; height: 60px; border-radius: 4px; overflow: hidden; border: 1px solid var(--color-border);';
+        thumbWrapper.style.cssText = `position: relative; width: 80px; height: 80px; border-radius: 4px; overflow: hidden; border: 2px solid ${isPrimary ? 'var(--color-primary)' : 'var(--color-border)'}; box-sizing: border-box;`;
+        
         thumbWrapper.innerHTML = `
-          <img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">
+          <img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; opacity: ${isPrimary ? '1' : '0.6'};">
+          
+          <!-- NEW: Set Main Button overlay -->
+          <div class="set-primary-btn" data-index="${index}" style="position: absolute; bottom: 0; left: 0; right: 0; background: ${isPrimary ? 'var(--color-primary)' : 'rgba(0,0,0,0.6)'}; color: white; text-align: center; font-size: 0.65rem; padding: 4px 0; font-weight: bold; cursor: pointer;">
+            ${isPrimary ? 'MAIN PIC' : 'SET MAIN'}
+          </div>
+          
           <button type="button" class="remove-thumb-btn" data-index="${index}" style="position: absolute; top: 2px; right: 2px; background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">×</button>
         `;
         previewContainer.appendChild(thumbWrapper);
@@ -163,6 +181,7 @@ export async function initDashboardProductForm(productId = null) {
   }
 
   previewContainer.addEventListener('click', (e) => {
+    // 1. Handle Removing an Image
     if (e.target.classList.contains('remove-thumb-btn')) {
       const indexToRemove = parseInt(e.target.getAttribute('data-index'));
       const dt = new DataTransfer();
@@ -172,6 +191,12 @@ export async function initDashboardProductForm(productId = null) {
       }
       fileInput.files = dt.files;
       renderPreviews();
+    }
+    
+    // 2. NEW: Handle Setting the Primary Image
+    if (e.target.classList.contains('set-primary-btn')) {
+      primaryImageIndex = parseInt(e.target.getAttribute('data-index'));
+      renderPreviews(); // Re-render to update the visual highlighting
     }
   });
 
@@ -270,7 +295,8 @@ export async function initDashboardProductForm(productId = null) {
 
       if (base64Images.length > 0) {
         payload.images = base64Images;
-        payload.image = base64Images[0]; // Set primary image
+        // NEW: Save the specifically selected main image
+        payload.image = base64Images[primaryImageIndex] || base64Images[0]; 
       }
 
       if (productId) {

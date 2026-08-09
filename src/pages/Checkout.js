@@ -2,11 +2,13 @@ import { cartStore } from '../store/cartStore.js';
 import { authStore } from '../store/authStore.js';
 import { db } from '../services/firebase.js';
 import { collection, addDoc } from 'firebase/firestore';
+import { notificationStore } from '../store/notificationStore.js';
 
 export function Checkout() {
-  const items = cartStore.items || [];
+  // Check for a Direct Buy override, otherwise fall back to the Cart
+  const buyNowData = sessionStorage.getItem('buyNowItem');
+  const items = buyNowData ? [JSON.parse(buyNowData)] : (cartStore.items || []);
   
-  // FIXED: Calculate the total directly from the items array
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   if (items.length === 0) {
@@ -98,8 +100,9 @@ export function initCheckout() {
       btn.textContent = 'Processing...';
       btn.disabled = true;
 
-      // FIXED: Calculate the final total right before saving to Firestore
-      const items = cartStore.items || [];
+      // Re-check the override right before saving to the database
+      const buyNowData = sessionStorage.getItem('buyNowItem');
+      const items = buyNowData ? [JSON.parse(buyNowData)] : (cartStore.items || []);
       const orderTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
       const orderData = {
@@ -120,9 +123,16 @@ export function initCheckout() {
 
       await addDoc(collection(db, "orders"), orderData);
       
-      cartStore.clearCart();
-      alert("Order placed successfully!");
-      window.location.hash = '#/profile/orders'; 
+      // If it was a Buy Now order, just clear the override. If not, empty the cart.
+      if (buyNowData) {
+        sessionStorage.removeItem('buyNowItem');
+      } else {
+        cartStore.clearCart();
+      }
+      
+      // Fire the real-time notification!
+      notificationStore.addNotification('🎉 Order placed successfully! Check your history for details.');
+      window.location.hash = '#/profile/orders';
 
     } catch (error) {
       alert("Error placing order: " + error.message);

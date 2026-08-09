@@ -1,44 +1,41 @@
 # 🛒 NovaCart Pro
 
-NovaCart Pro is a modern, modular Single Page Application (SPA) built to demonstrate advanced frontend architecture and backend integration without relying on heavy frameworks. It serves as a comprehensive portfolio project showcasing domain-driven design, custom routing, and state management.
+NovaCart Pro is a modern, modular Single Page Application (SPA) built to demonstrate advanced frontend architecture and backend integration without relying on heavy frameworks. It serves as a comprehensive portfolio project showcasing domain-driven design, custom routing, and real-time state management.
 
-## 🚀 Live Demo
-[View Live Project](https://novacart-pro.netlify.app/)[cite: 5]
+🔗 **Live Demo:** [NovaCart Pro on Netlify](https://novacart-pro.netlify.app/)  
+🔗 **Repository:** [GitHub Repository](https://github.com/ALOKTHEBOY/novacart-pro)
 
 ## ✨ Main Features
 
 **Customer Experience**
 *   **Dynamic Product Catalog:** Real-time fetching, searching, and sorting of products.
 *   **Rich Product Details:** Multi-image gallery with horizontal scrolling, key highlights, dynamic pricing, and integrated video players.
-*   **Shopping Cart & Wishlist:** Persistent global state synced across the application.
-*   **Secure Checkout:** Validated shipping forms that generate live database orders.
-*   **User Profile:** Order history tracking, account settings, and secure password reset flows.
+*   **Shopping Cart & Wishlist:** Persistent global state synced across the application with dedicated empty-state conversion funnels.
+*   **Secure Checkout:** Direct "Buy Now" session overrides and validated shipping forms.
+*   **Real-Time Notifications:** Event-driven bell alerts for order updates and system messages.
 
 **Admin Experience (Role-Based Access)**
 *   **Secure Dashboard:** Protected routes accessible only to authorized admin accounts.
-*   **Catalog Management:** Dedicated List and Form views to Add, Edit, and Delete products.
-*   **Rich Media Handling:** Supports up to 10 images (Canvas-compressed Base64) and external Video URLs.
-*   **Order Tracking:** Live view of customer orders.
+*   **Catalog Management:** Dedicated List and Form views to Add, Edit, and Delete products, including primary image selection.
+*   **Order Tracking:** Live view of customer orders with real-time status updating and filtering.
 
 ## 🏗 Architecture & Tech Stack
 
 **Frontend**
 *   **Vanilla JavaScript (ES6+):** Core logic, API services, and DOM manipulation.
 *   **Vite:** Lightning-fast build tool and local development server.
-*   **Custom SPA Router:** Hash-based routing system (`#/dashboard/products/edit/:id`) built from scratch with route guards and dynamic parameter parsing.
-*   **State Management:** Custom reactive stores (`cartStore`, `wishlistStore`, `authStore`) utilizing the Observer pattern.
-*   **CSS3:** Native CSS variables for theming (including Dark Mode) and CSS Grid/Flexbox for responsive layouts.
+*   **Custom SPA Router:** Hash-based routing system (`#/dashboard/products/edit/:id`) built from scratch with route guards, dynamic parameter parsing, and 404 handling.
+*   **State Management:** Custom reactive stores (`cartStore`, `wishlistStore`, `notificationStore`) utilizing the Observer pattern and `localStorage`.
+*   **CSS3:** Native CSS variables for theming (including a dynamic Light/Dark mode engine) and CSS Grid/Flexbox for fully responsive layouts.
 
 **Backend (Firebase)**
 *   **Firebase Authentication:** Secure email/password login, registration, and user profile management.
 *   **Cloud Firestore:** NoSQL document database storing `users`, `products`, and `orders`.
 
-## ⚠️ Known Limitations (Free-Tier Architecture)
-
-To keep this project entirely free to host and run, the following architectural compromises were made:
-*   **Image Storage:** Images are compressed via HTML5 Canvas and stored as Base64 strings directly inside Firestore documents. This limits the maximum payload to Firestore's 1MB document limit.
-*   **Video Hosting:** Videos rely on external URLs (YouTube, Vimeo, MP4 links) rather than native binary uploads to bypass storage costs.
-*   **Payment Gateway:** The checkout process is a UI simulation. It successfully creates an order in the database but does not process real credit card transactions.
+---
 
 ## 👨‍💻 Author
-[ALOKTHEBOY](https://github.com/ALOKTHEBOY) - [GitHub Repository](https://github.com/ALOKTHEBOY/novacart-pro)[cite: 5]
+
+**Alok Barman**  
+*Frontend Developer*  
+*   GitHub: [@ALOKTHEBOY](https://github.com/ALOKTHEBOY)

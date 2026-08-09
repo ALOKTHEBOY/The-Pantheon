@@ -169,3 +169,74 @@
     height: 300px;
   }
 }
+
+/* --- Mobile Header & Hamburger Menu --- */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: var(--color-text-main);
+  padding: 0;
+}
+
+.nav-list {
+  display: flex;
+  gap: var(--spacing-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  align-items: center;
+}
+
+/* When the screen gets smaller than 900px, trigger Mobile View */
+@media (max-width: 900px) {
+  .mobile-menu-btn {
+    display: block; /* Show hamburger icon */
+  }
+  
+  .nav-list {
+    display: none; /* Hide menu by default */
+    flex-direction: column;
+    align-items: flex-start;
+    position: absolute;
+    top: 70px;
+    left: 0;
+    right: 0;
+    background: var(--color-surface);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 1000;
+  }
+
+  .nav-list.mobile-open {
+    display: flex;
+  }
+
+  /* --- NEW: Accordion Dropdown Fix for Mobile --- */
+  .dropdown-wrapper {
+    width: 100%; /* Ensure wrapper takes full width */
+  }
+
+  .dropdown-wrapper .dropdown-menu {
+    position: static; /* Stop floating off the screen */
+    box-shadow: none; /* Remove floating shadow */
+    border: none; 
+    border-left: 2px solid var(--color-border); /* Add a nice indent line */
+    padding-left: 1rem;
+    width: 100%;
+    margin-top: 0.5rem;
+    background: transparent; /* Blend with the mobile menu */
+    
+    /* FIX: Completely remove it from the layout when closed */
+    display: none; 
+    flex-direction: column;
+  }
+
+  /* FIX: Show it and push content down ONLY when clicked */
+  .dropdown-wrapper.is-active .dropdown-menu {
+    display: flex;
+  }
+}

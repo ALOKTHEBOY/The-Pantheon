@@ -14,6 +14,7 @@ import { ProductDetails, initProductDetails } from './pages/ProductDetails.js';
 import { Wishlist, initWishlist } from './pages/Wishlist.js';
 import { Login, initLogin } from './pages/Login.js';
 import { Register, initRegister } from './pages/Register.js';
+import { NotFound } from './pages/NotFound.js'; // NEW: 404 Page
 
 // Stores
 import { cartStore } from './store/cartStore.js';
@@ -114,8 +115,8 @@ function router() {
     return;
   }
 
-  // Handle Standard Routes
-  const route = routes[path] || routes['#/'];
+  // Handle Standard Routes (If the path isn't in the routes object, render the 404 page)
+  const route = routes[path] || { render: NotFound, init: null };
   app.innerHTML = Layout(route.render());
   
   if (route.init) {
@@ -133,18 +134,73 @@ window.addEventListener('hashchange', router);
 window.addEventListener('DOMContentLoaded', () => {
   router();
   window.dispatchEvent(new CustomEvent('cartUpdated')); 
-  initDropdowns(); // NEW: Activates the mobile-click listeners for dropdowns
+  initDropdowns(); 
   
-  if (localStorage.getItem('theme') === 'dark') {
+  // Smart Theme Initialization
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     document.body.classList.add('dark-mode');
+  } else {
+    document.body.classList.remove('dark-mode');
   }
 });
 
-// Updates the header cart count dynamically
+// Updates the header cart badge dynamically
 window.addEventListener('cartUpdated', () => {
-  const cartCountElement = document.getElementById('cart-count');
-  if (cartCountElement) {
-    cartCountElement.textContent = `Cart (${cartStore.getTotalItems()})`;
+  const cartIcon = document.getElementById('mobile-cart-icon');
+  if (cartIcon) {
+    const total = cartStore.getTotalItems();
+    let badge = document.getElementById('cart-badge');
+    
+    if (total > 0) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.id = 'cart-badge';
+        badge.style.cssText = 'position: absolute; top: -6px; right: -8px; background: var(--color-primary); color: white; border-radius: 50%; font-size: 0.65rem; padding: 2px 6px; font-weight: bold;';
+        cartIcon.appendChild(badge);
+      }
+      badge.textContent = total;
+    } else if (badge) {
+      badge.remove();
+    }
+  }
+});
+
+// Updates the notification bell and dropdown dynamically
+window.addEventListener('notificationsUpdated', () => {
+  const bellBtn = document.getElementById('notification-bell');
+  const dropdown = document.getElementById('notification-dropdown');
+  
+  if (bellBtn && dropdown) {
+    // 1. Update the Red Badge
+    const unreadCount = notificationStore.getUnreadCount();
+    let badge = bellBtn.querySelector('span');
+    
+    if (unreadCount > 0) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.style.cssText = 'position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; font-size: 0.6rem; padding: 2px 5px; font-weight: bold;';
+        bellBtn.appendChild(badge);
+      }
+      badge.textContent = unreadCount;
+    } else if (badge) {
+      badge.remove();
+    }
+
+    // 2. Update the Dropdown List HTML
+    const listHtml = notificationStore.notifications.length > 0 
+      ? notificationStore.notifications.map(n => `
+          <div style="padding: 10px; border-bottom: 1px solid var(--color-border); opacity: ${n.read ? '0.6' : '1'}; transition: opacity 0.3s;">
+            <div style="font-size: 0.9rem; color: var(--color-text-main);">${n.text}</div>
+            <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px;">${n.time}</div>
+          </div>
+        `).join('')
+      : '<div style="padding: 15px; font-size: 0.9rem; color: var(--color-text-muted); text-align: center;">No notifications yet.</div>';
+    
+    dropdown.innerHTML = `
+      <div style="padding: 10px; font-weight: bold; border-bottom: 1px solid var(--color-border);">Notifications</div>
+      <div style="max-height: 300px; overflow-y: auto;">${listHtml}</div>
+    `;
   }
 });
 
@@ -159,16 +215,49 @@ window.addEventListener('authStateChanged', async () => {
 // --- 5. GLOBAL CLICK DELEGATION ---
 // Handles all click interactions efficiently at the document level
 document.addEventListener('click', async (e) => {
+
+  // Mobile Hamburger Menu Toggle
+  if (e.target.closest('#mobile-menu-toggle')) {
+    const navList = document.getElementById('main-nav-list');
+    if (navList) {
+      navList.classList.toggle('mobile-open');
+    }
+    return;
+  }
+
+  // Auto-close mobile menu when a navigation link is clicked
+  if (e.target.closest('.nav-link')) {
+    const navList = document.getElementById('main-nav-list');
+    if (navList && navList.classList.contains('mobile-open')) {
+      navList.classList.remove('mobile-open');
+    }
+  }
   
-  // Theme Toggle Logic
-  if (e.target.closest('#theme-toggle')) {
-    const toggleBtn = e.target.closest('#theme-toggle');
-    document.body.classList.toggle('dark-mode');
+  // NEW: Dropdown Theme Selector Logic
+  if (e.target.getAttribute('href')?.startsWith('#/theme/')) {
+    e.preventDefault();
+    const mode = e.target.getAttribute('href').split('/')[2];
     
-    const isDark = document.body.classList.contains('dark-mode');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    toggleBtn.textContent = isDark ? '☀️' : '🌙';
-    return; 
+    if (mode === 'light') {
+      document.body.classList.remove('dark-mode');
+      localStorage.setItem('theme', 'light');
+    } else if (mode === 'dark') {
+      document.body.classList.add('dark-mode');
+      localStorage.setItem('theme', 'dark');
+    } else if (mode === 'system') {
+      localStorage.removeItem('theme');
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark-mode');
+      } else {
+        document.body.classList.remove('dark-mode');
+      }
+    }
+    
+    // Close the dropdown and nav menu after selecting
+    document.getElementById('main-nav-list')?.classList.remove('mobile-open');
+    document.querySelectorAll('.dropdown-wrapper').forEach(d => d.classList.remove('is-active'));
+    showToast(`Theme changed to ${mode}`);
+    return;
   }
 
   // Wishlist Toggle Logic
