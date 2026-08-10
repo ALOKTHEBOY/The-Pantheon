@@ -21,6 +21,7 @@ import { cartStore } from './store/cartStore.js';
 import { wishlistStore } from './store/wishlistStore.js';
 import { authStore } from './store/authStore.js';
 import { notificationStore } from './store/notificationStore.js';
+import { settingsStore } from './store/settingsStore.js';
 
 // Components
 import { Dropdown, initDropdowns } from './components/Dropdown.js';
@@ -32,6 +33,7 @@ import { DashboardSettings, initDashboardSettings } from './pages/Dashboard/Sett
 import { DashboardAnalytics, initDashboardAnalytics } from './pages/Dashboard/Analytics.js';
 import { DashboardProductList, initDashboardProductList } from './pages/Dashboard/ProductList.js';
 import { DashboardProductForm, initDashboardProductForm } from './pages/Dashboard/ProductForm.js';
+import { ManageHome, initManageHome } from './pages/Dashboard/ManageHome.js';
 
 // Profile Subpages
 import { ProfileInfo, initProfileInfo } from './pages/Profile/Info.js';
@@ -65,6 +67,7 @@ const routes = {
   '#/dashboard/products/add': { render: DashboardProductForm, init: () => initDashboardProductForm(null) },
   '#/dashboard/orders': { render: DashboardOrders, init: initDashboardOrders }, 
   '#/dashboard/settings': { render: DashboardSettings, init: initDashboardSettings },
+  '#/dashboard/home': { render: ManageHome, init: initManageHome },
 };
 
 // Helper: Highlights the active link in the navigation bar
@@ -81,7 +84,10 @@ function updateActiveNavLink(currentPath) {
 
 // Core Router Logic
 function router() {
-  let path = window.location.hash;
+  let fullHash = window.location.hash;
+  // NEW: Strip off query parameters so the router only reads the base path (e.g., '#/products')
+  let path = fullHash.split('?')[0]; 
+  
   if (path === '#' || path === '') path = '#/';
   
   // Handle Dynamic Product Details Route (Customer View)
@@ -294,6 +300,7 @@ document.addEventListener('click', async (e) => {
     const product = await getProductById(productId); 
     
     if (product) {
+      settingsStore.playSound('cart'); // Play Sound!
       cartStore.addToCart(product);
       showToast(`${product.name} added to cart!`);
     }

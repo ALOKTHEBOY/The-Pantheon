@@ -2,9 +2,11 @@ import { authStore } from '../../store/authStore.js';
 import { auth } from '../../services/firebase.js';
 import { updateProfile, sendPasswordResetEmail } from 'firebase/auth'; // NEW IMPORT
 import { showToast } from '../../utils/toast.js';
+import { settingsStore } from '../../store/settingsStore.js';
 
 export function ProfileSettings() {
   const user = authStore.user;
+  const isMuted = settingsStore.isMuted;
   
   return `
     <div style="max-width: 800px; margin: 2rem auto; padding: 0 1rem;">
@@ -47,6 +49,23 @@ export function ProfileSettings() {
            </button>
         </div>
 
+        <!-- PREFERENCES SECTION -->
+        <div style="padding: 2rem; background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border); box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+           <h3 style="font-size: 1.1rem; color: var(--color-text-main); margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">Preferences</h3>
+           
+           <!-- Sound Effect Toggle -->
+           <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
+             <div>
+               <div style="font-weight: bold; font-size: 1rem;">Application Sounds</div>
+               <div style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: 4px;">Play sound effects for cart actions and notifications.</div>
+             </div>
+             
+             <button id="toggle-sound-btn" class="btn" style="background: ${isMuted ? 'var(--color-surface)' : 'var(--color-primary)'}; color: ${isMuted ? 'var(--color-text-main)' : 'white'}; border: 2px solid ${isMuted ? 'var(--color-border)' : 'var(--color-primary)'}; width: 140px; font-weight: bold; padding: 8px 16px;">
+               ${isMuted ? '🔇 Muted' : '🔊 Sound On'}
+             </button>
+           </div>
+        </div>
+
       </div>
     </div>
   `;
@@ -57,6 +76,8 @@ export async function initProfileSettings() {
   const nameInput = document.getElementById('setting-display-name');
   const submitBtn = document.getElementById('update-profile-btn');
   const resetPasswordBtn = document.getElementById('reset-password-btn');
+
+  const soundBtn = document.getElementById('toggle-sound-btn');
 
   const currentUser = auth.currentUser;
 
@@ -110,6 +131,15 @@ export async function initProfileSettings() {
         resetPasswordBtn.textContent = originalText;
         resetPasswordBtn.disabled = false;
       }
+    });
+  }
+
+  // 3. Handle Sound Toggle
+  if (soundBtn) {
+    soundBtn.addEventListener('click', () => {
+      settingsStore.toggleMute();
+      // Re-render to update the button UI
+      window.dispatchEvent(new Event('hashchange')); 
     });
   }
 }

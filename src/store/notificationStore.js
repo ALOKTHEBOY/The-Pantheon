@@ -1,3 +1,5 @@
+import { settingsStore } from './settingsStore.js';
+
 // Define a key for localStorage
 const STORAGE_KEY = 'novacart_notifications';
 
@@ -13,8 +15,8 @@ export const notificationStore = {
     window.dispatchEvent(new CustomEvent('notificationsUpdated'));
   },
 
-  // NEW: The function we will call to trigger a new alert!
-  addNotification(text) {
+  // NEW: Accepts a custom sound, defaults to 'notify'
+  addNotification(text, soundType = 'notify') {
     const now = new Date();
     const timeString = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
@@ -25,12 +27,15 @@ export const notificationStore = {
       time: timeString
     };
     
-    // Add to the beginning of the list (newest first)
     this.notifications.unshift(newNotif);
     
-    // Cap it at 15 notifications so the dropdown doesn't get infinitely long
     if (this.notifications.length > 15) {
       this.notifications.pop();
+    }
+    
+    // Play the specific sound requested (or skip if 'none')
+    if (soundType !== 'none') {
+      settingsStore.playSound(soundType);
     }
     
     this.save();

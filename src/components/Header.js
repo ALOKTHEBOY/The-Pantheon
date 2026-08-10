@@ -14,6 +14,7 @@ export function Header() {
           label: 'Dashboard',
           items: [
             { label: 'Overview', link: '#/dashboard' },
+            { label: 'Manage Homepage', link: '#/dashboard/home' },
             { label: 'Manage Products', link: '#/dashboard/products' },
             { label: 'Store Orders', link: '#/dashboard/orders' },
             { label: 'Analytics', link: '#/dashboard/analytics' },
@@ -58,13 +59,27 @@ export function Header() {
   </li>`;
 
   return `
-    <header class="header" style="position: relative;">
+    <header class="header" style="position: sticky; top: 0; z-index: 1000; background: var(--color-surface); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--color-border);">
       <div class="container flex-between">
         
         <!-- Left Side: Hamburger & Logo -->
         <div style="display: flex; align-items: center; gap: 15px;">
           <button id="mobile-menu-toggle" class="mobile-menu-btn">☰</button>
-          <h2 style="color: var(--color-primary); margin: 0;">NovaCart Pro</h2>
+          <a href="#/" style="text-decoration: none;">
+            <h2 style="
+              margin: 0; 
+              font-family: 'Georgia', serif; 
+              letter-spacing: 2px; 
+              text-transform: uppercase;
+              background: linear-gradient(135deg, #2563eb 0%, #9333ea 50%, #db2777 100%);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              font-weight: 800;
+              font-size: 1.5rem;
+            ">
+              The Pantheon
+            </h2>
+          </a>
         </div>
         
         <!-- Center: Navigation (Cart text removed) -->
@@ -100,10 +115,24 @@ export function Header() {
               </div>
             </div>
 
-            <!-- NEW: Premium Cart Icon -->
-            <a href="#/cart" id="mobile-cart-icon" style="position: relative; text-decoration: none; font-size: 1.5rem; display: flex; align-items: center;">
+            <!-- Premium Cart Icon -->
+            <a href="#/cart" id="mobile-cart-icon" style="
+              position: relative; 
+              text-decoration: none; 
+              font-size: 1.3rem; 
+              display: flex; 
+              align-items: center; 
+              justify-content: center;
+              width: 40px;
+              height: 40px;
+              background: var(--color-surface);
+              border: 1px solid var(--color-border);
+              border-radius: 50%;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+              transition: transform 0.2s;
+            ">
               🛒
-              ${totalItems > 0 ? `<span id="cart-badge" style="position: absolute; top: -6px; right: -8px; background: var(--color-primary); color: white; border-radius: 50%; font-size: 0.65rem; padding: 2px 6px; font-weight: bold;">${totalItems}</span>` : ''}
+              ${totalItems > 0 ? `<span id="cart-badge" style="position: absolute; top: -4px; right: -4px; background: linear-gradient(135deg, #ef4444, #db2777); color: white; border-radius: 50%; font-size: 0.65rem; padding: 2px 6px; font-weight: bold; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);">${totalItems}</span>` : ''}
             </a>
 
           </div>

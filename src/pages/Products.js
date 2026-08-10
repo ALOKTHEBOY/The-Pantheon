@@ -21,6 +21,7 @@ export function Products() {
             <option value="toys">Toys & Games</option>
             <option value="books">Books</option>
             <option value="other">Other</option>
+            <option value="outfits">Outfits</option>
           </select>
 
           <select id="sort-filter" style="padding: 8px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main);">
@@ -44,9 +45,15 @@ export function Products() {
 
 export async function initProducts() {
   const grid = document.getElementById('products-grid');
-  const searchInput = document.getElementById('search-input');
   const categoryFilter = document.getElementById('category-filter');
   const sortFilter = document.getElementById('sort-filter');
+
+  const categorySelect = document.getElementById('category-filter'); // Check your exact ID for the category dropdown
+  const searchInput = document.getElementById('search-input'); // Check your exact ID
+
+  // 1. NEW: Read the URL for any category parameters sent from the Home Banner
+  const urlParams = new URLSearchParams(window.location.hash.split('?')[1]);
+  const requestedCategory = urlParams.get('category');
 
   if (!grid) return;
 
@@ -57,6 +64,11 @@ export async function initProducts() {
     render(allProducts); 
   } catch (error) {
     grid.innerHTML = `<p style="color: #ef4444;">Failed to load products: ${error.message}</p>`;
+  }
+
+  if (requestedCategory && categorySelect) {
+    // 2. Auto-select the dropdown to match the banner link
+    categorySelect.value = requestedCategory;
   }
 
   function render(productsToRender) {
@@ -85,6 +97,7 @@ export async function initProducts() {
     grid.innerHTML = productsToRender.map(product => ProductCard(product)).join('');
   }
 
+  // 3. Your existing filter function (make sure this gets called after setting the value!)
   function applyFilters() {
     const searchTerm = searchInput.value.toLowerCase();
     const category = categoryFilter.value;
@@ -113,4 +126,7 @@ export async function initProducts() {
   if (searchInput) searchInput.addEventListener('input', applyFilters);
   if (categoryFilter) categoryFilter.addEventListener('change', applyFilters);
   if (sortFilter) sortFilter.addEventListener('change', applyFilters);
+
+  // Initial render
+  applyFilters();
 }

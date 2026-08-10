@@ -2,6 +2,7 @@ import { db } from '../services/firebase.js';
 import { doc, getDoc } from 'firebase/firestore';
 import { cartStore } from '../store/cartStore.js';
 import { wishlistStore } from '../store/wishlistStore.js'; // NEW IMPORT
+import { settingsStore } from '../store/settingsStore.js';
 
 export function ProductDetails() {
   return `
@@ -43,9 +44,15 @@ export async function initProductDetails(productId) {
           <div class="gallery-container" id="gallery-main-container">
             ${hasDiscount ? `<div style="position: absolute; top: 20px; left: 20px; background: #ef4444; color: white; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 1rem; z-index: 1;">🔥 ${product.discountPercentage}% OFF</div>` : ''}
             
-            <button id="detail-wishlist-btn" style="position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 1.2rem;">
-              🤍
-            </button>
+            <!-- Top Right Icons: Share & Wishlist -->
+            <div style="position: absolute; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 2;">
+              <button id="detail-wishlist-btn" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 1.2rem;">
+                🤍
+              </button>
+              <button id="detail-share-btn" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 1.2rem;">
+                🔗
+              </button>
+            </div>
 
             ${images.length > 1 ? `
               <button class="gallery-nav-btn gallery-prev" id="gallery-prev">❮</button>
@@ -243,6 +250,7 @@ export async function initProductDetails(productId) {
     // 2. Upgraded Add to Cart (Fixed UI Reset)
     if (addToCartBtn) {
       addToCartBtn.addEventListener('click', () => {
+        settingsStore.playSound('cart'); // Play Sound!
         for (let i = 0; i < currentQty; i++) {
           cartStore.addToCart(product);
         }
@@ -276,11 +284,10 @@ export async function initProductDetails(productId) {
     const buyNowBtn = document.getElementById('buy-now-btn');
     if (buyNowBtn) {
       buyNowBtn.addEventListener('click', () => {
-        // Create a direct-buy package and save it temporarily
+        settingsStore.playSound('buy'); // Play Sound!
+
         const directItem = { ...product, quantity: currentQty };
         sessionStorage.setItem('buyNowItem', JSON.stringify(directItem));
-        
-        // Go straight to checkout (Bypassing the cart store)
         window.location.hash = '#/checkout';
       });
     }
@@ -304,6 +311,30 @@ export async function initProductDetails(productId) {
       wishlistBtn.addEventListener('click', async () => {
         await wishlistStore.toggle(product);
         // The global 'wishlistUpdated' event fired by the store will auto-update the UI
+      });
+    }
+
+    // 4. Share Button Native API
+    const shareBtn = document.getElementById('detail-share-btn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async () => {
+        const shareData = {
+          title: product.name,
+          text: `Check out ${product.name} on NovaCart Pro!`,
+          url: window.location.href
+        };
+        
+        if (navigator.share) {
+          try {
+            await navigator.share(shareData);
+          } catch (err) {
+            console.log('User cancelled share or sharing failed.');
+          }
+        } else {
+          // Fallback for older browsers (copies to clipboard)
+          navigator.clipboard.writeText(window.location.href);
+          alert('Link copied to clipboard!');
+        }
       });
     }
 
