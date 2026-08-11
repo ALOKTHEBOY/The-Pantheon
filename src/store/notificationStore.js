@@ -1,7 +1,7 @@
 import { settingsStore } from './settingsStore.js';
 
 // Define a key for localStorage
-const STORAGE_KEY = 'novacart_notifications';
+const STORAGE_KEY = 'pantheon_notifications';
 
 // Load initial state from LocalStorage or default to an empty array
 const savedNotifications = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];

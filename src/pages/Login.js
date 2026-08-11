@@ -30,7 +30,7 @@ export function Login() {
       </form>
       
       <p style="text-align: center; margin-top: var(--spacing-md); color: var(--color-text-muted); font-size: 0.9rem;">
-        Don't have an account? <a href="#register" style="color: var(--color-primary); text-decoration: none;">Create one here</a>
+        Don't have an account? <a href="#/register" style="color: var(--color-primary); text-decoration: none;">Create one here</a>
       </p>
     </div>
   `;

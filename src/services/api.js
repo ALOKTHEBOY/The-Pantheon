@@ -1,29 +1,41 @@
 import { db } from './firebase.js';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { products as demoProducts } from '../utils/data.js';
 
-// Renamed from getProducts to fetchProducts to match your existing pages
+// Fetch all products with smart demo fallback
 export async function fetchProducts() {
   try {
-    const productsCol = collection(db, 'products');
-    const productSnapshot = await getDocs(productsCol);
-    
-    // Map through the database documents and grab the data + the unique ID
-    const productList = productSnapshot.docs.map(doc => ({
-      id: doc.id, 
-      ...doc.data()
-    }));
-    
-    return productList;
+    const snapshot = await getDocs(collection(db, "products"));
+    const realProducts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // IF REAL PRODUCTS EXIST IN FIRESTORE -> SHOW ONLY REAL PRODUCTS
+    if (realProducts.length > 0) {
+      return realProducts;
+    }
+
+    // IF DATABASE IS EMPTY -> SHOW DEMO PRODUCTS
+    return demoProducts;
   } catch (error) {
-    console.error("Error fetching products:", error);
-    return []; // Return empty array if it fails so the app doesn't crash
+    console.error("Error fetching products from Firestore:", error);
+    return demoProducts;
   }
 }
 
+// Fetch single product by ID
 export async function getProductById(id) {
-  // Updated to call the correctly named function
-  const products = await fetchProducts(); 
-  
-  // Find the exact product using == since Firestore IDs are strings
-  return products.find(p => p.id == id); 
+  if (id.startsWith('demo-')) {
+    return demoProducts.find(p => p.id === id) || null;
+  }
+
+  try {
+    const docRef = doc(db, "products", id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
+    }
+  } catch (error) {
+    console.error("Error fetching product details:", error);
+  }
+
+  return demoProducts.find(p => p.id === id) || null;
 }

@@ -11,7 +11,7 @@ export function Checkout() {
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   
   // NEW: Pull saved address from local storage
-  const savedAddress = JSON.parse(localStorage.getItem('novacart_address')) || {};
+  const savedAddress = JSON.parse(localStorage.getItem('pantheon_address')) || {};
 
   if (items.length === 0) {
     return `
@@ -135,7 +135,7 @@ export function initCheckout() {
       };
 
       // NEW: Save address for next time
-      localStorage.setItem('novacart_address', JSON.stringify(orderData.shippingDetails));
+      localStorage.setItem('pantheon_address', JSON.stringify(orderData.shippingDetails));
 
       await addDoc(collection(db, "orders"), orderData);
       

@@ -1,5 +1,6 @@
 import { auth } from '../services/firebase.js';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { notificationStore } from '../store/notificationStore.js'; // NEW IMPORT
 
 export function Register() {
   return `
@@ -29,7 +30,7 @@ export function Register() {
       </form>
       
       <p style="text-align: center; margin-top: var(--spacing-md); color: var(--color-text-muted); font-size: 0.9rem;">
-        Already have an account? <a href="#login" style="color: var(--color-primary); text-decoration: none;">Sign in here</a>
+        Already have an account? <a href="#/login" style="color: var(--color-primary); text-decoration: none;">Sign in here</a>
       </p>
     </div>
   `;
@@ -63,7 +64,10 @@ export function initRegister() {
       btn.disabled = true;
       
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(userCredential.user, { displayName: name }); // Saves the Welcome Name
+      await updateProfile(userCredential.user, { displayName: name }); 
+      
+      // NEW: Trigger a welcome notification for new users
+      notificationStore.addNotification(`Welcome to The Pantheon, ${name}! Your vault access is now active.`, 'notify');
       
       window.location.hash = '#';
     } catch (error) {

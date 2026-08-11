@@ -44,7 +44,7 @@ export function ProfileSettings() {
              To ensure your account remains secure, password changes are handled via email verification. Click the button below to receive a secure password reset link.
            </p>
 
-           <button type="button" id="reset-password-btn" class="btn" style="max-width: 250px; background: var(--color-text-main); color: var(--color-background);">
+           <button type="button" id="reset-password-btn" class="btn" style="max-width: 250px; background: var(--color-text-main); color: var(--color-surface);">
              Send Password Reset Email
            </button>
         </div>

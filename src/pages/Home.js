@@ -77,7 +77,6 @@ export function Home() {
         transform: scale(1.2);
       }
       
-      /* New Desktop Classes for Section Headers */
       .section-header-container {
         display: flex; 
         justify-content: space-between; 
@@ -98,15 +97,13 @@ export function Home() {
         font-weight: bold;
       }
 
-      /* MOBILE SPECIFIC FIXES */
       @media (max-width: 768px) {
         .hero-carousel { height: 400px; }
-        .carousel-content { padding: 1rem 1rem 3rem 1rem; } /* Pushes content up away from dots */
+        .carousel-content { padding: 1rem 1rem 3rem 1rem; } 
         .carousel-title { font-size: 1.8rem; line-height: 1.2; margin-bottom: 0.5rem; }
         .carousel-subtitle { font-size: 1rem; margin-bottom: 1.5rem; }
-        
         .section-header-container {
-          flex-direction: column; /* Stack the title and link */
+          flex-direction: column;
           align-items: flex-start;
           gap: 8px;
         }
@@ -132,7 +129,7 @@ export function Home() {
       <!-- Section 2: Category Best (Tech) -->
       <div class="section-header-container">
         <h2 class="section-title">Advanced Technology</h2>
-        <a href="#/products?category=electronics" class="section-link">Shop Tech →</a>
+        <a href="#/products?category=hyperdrive" class="section-link">Shop Tech →</a>
       </div>
       <div id="home-tech-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; justify-content: center; margin-bottom: 3rem;">
         <p style="color: var(--color-text-muted);">Decrypting tech catalog...</p>
@@ -152,98 +149,92 @@ export function Home() {
 }
 
 export async function initHome() {
-  // --- 1. CAROUSEL LOGIC ---
   const carouselContainer = document.getElementById('home-hero-carousel');
   
-  const slidesData = [
+  // Default fallback slides
+  const defaultSlides = [
     {
       image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop',
       title: '50% Off Future Tech',
       subtitle: 'Upgrade your timeline with Class-4 Hyperdrive Engines and personal forcefields.',
-      link: '#/products?category=electronics',
+      link: '#/products?category=hyperdrive',
       btnText: 'Shop Tech'
     },
     {
       image: 'https://images.unsplash.com/photo-1605556209590-097fa620f4b3?q=80&w=1200&auto=format&fit=crop',
       title: '60% Off Historical Armor',
       subtitle: 'Authentic Spartan gear and medieval luxury outfits. Guaranteed battle-ready.',
-      link: '#/products?category=outfits',
+      link: '#/products?category=armor',
       btnText: 'Shop Outfits'
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop',
-      title: 'Billionaire Festival Sale',
-      subtitle: 'Get an extra 25% off on all private planets and decommissioned UFOs.',
-      link: '#/products',
-      btnText: 'Explore The Vault'
     }
   ];
 
-  if (carouselContainer) {
-    const slidesHTML = slidesData.map((slide, index) => `
-      <div class="carousel-slide ${index === 0 ? 'active' : ''}" style="background-image: url('${slide.image}');" data-index="${index}">
-        <div class="carousel-overlay"></div>
-        <div class="carousel-content">
-          <h2 class="carousel-title">${slide.title}</h2>
-          <p class="carousel-subtitle">${slide.subtitle}</p>
-          <a href="${slide.link}" class="btn" style="text-decoration: none; padding: 12px 30px; font-size: 1.1rem; border-radius: 30px; background: var(--color-primary); color: white; border: none; font-weight: bold;">${slide.btnText}</a>
-        </div>
-      </div>
-    `).join('');
-
-    const indicatorsHTML = `
-      <div class="carousel-indicators">
-        ${slidesData.map((_, index) => `<div class="indicator-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></div>`).join('')}
-      </div>
-    `;
-
-    carouselContainer.innerHTML = slidesHTML + indicatorsHTML;
-
-    const slides = carouselContainer.querySelectorAll('.carousel-slide');
-    const dots = carouselContainer.querySelectorAll('.indicator-dot');
-    let currentSlide = 0;
-    let slideInterval;
-
-    function goToSlide(index) {
-      slides[currentSlide].classList.remove('active');
-      dots[currentSlide].classList.remove('active');
-      currentSlide = index;
-      slides[currentSlide].classList.add('active');
-      dots[currentSlide].classList.add('active');
-    }
-
-    function nextSlide() { goToSlide((currentSlide + 1) % slides.length); }
-    function startSlider() { slideInterval = setInterval(nextSlide, 5000); }
-    function stopSlider() { clearInterval(slideInterval); }
-
-    dots.forEach((dot, index) => {
-      dot.addEventListener('click', () => {
-        stopSlider();
-        goToSlide(index);
-        startSlider(); 
-      });
-    });
-
-    carouselContainer.addEventListener('mouseenter', stopSlider);
-    carouselContainer.addEventListener('mouseleave', startSlider);
-    startSlider();
-    
-    window.addEventListener('hashchange', () => stopSlider(), { once: true });
-  }
-
-  // --- 2. 3-TIER DATA FETCHING (WIRED TO CMS) ---
   try {
-    // Fetch all products
-    const productSnap = await getDocs(collection(db, 'products'));
-    const allProducts = productSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
-    // Fetch CMS Settings
-    const { doc, getDoc } = await import('firebase/firestore'); // Ensure doc/getDoc are available
+    // 1. Fetch CMS Settings
+    const { doc, getDoc } = await import('firebase/firestore');
     const settingsRef = doc(db, 'homepage_settings', 'layout');
     const settingsSnap = await getDoc(settingsRef);
-    const settings = settingsSnap.exists() ? settingsSnap.data() : { trending: [], tech: [], newArrivals: [] };
+    const settings = settingsSnap.exists() ? settingsSnap.data() : { trending: [], tech: [], newArrivals: [], carousel: [] };
 
-    // Helper function to map IDs to actual product HTML
+    // 2. Build the Carousel using CMS data (or fallback)
+    if (carouselContainer) {
+      const activeSlides = settings.carousel && settings.carousel.length > 0 ? settings.carousel : defaultSlides;
+
+      const slidesHTML = activeSlides.map((slide, index) => `
+        <div class="carousel-slide ${index === 0 ? 'active' : ''}" style="background-image: url('${slide.image}');" data-index="${index}">
+          <div class="carousel-overlay"></div>
+          <div class="carousel-content">
+            <h2 class="carousel-title">${slide.title}</h2>
+            <p class="carousel-subtitle">${slide.subtitle}</p>
+            <a href="${slide.link}" class="btn" style="text-decoration: none; padding: 12px 30px; font-size: 1.1rem; border-radius: 30px; background: var(--color-primary); color: white; border: none; font-weight: bold;">${slide.btnText}</a>
+          </div>
+        </div>
+      `).join('');
+
+      const indicatorsHTML = `
+        <div class="carousel-indicators">
+          ${activeSlides.map((_, index) => `<div class="indicator-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></div>`).join('')}
+        </div>
+      `;
+
+      carouselContainer.innerHTML = slidesHTML + indicatorsHTML;
+
+      const slides = carouselContainer.querySelectorAll('.carousel-slide');
+      const dots = carouselContainer.querySelectorAll('.indicator-dot');
+      let currentSlide = 0;
+      let slideInterval;
+
+      function goToSlide(index) {
+        slides[currentSlide].classList.remove('active');
+        dots[currentSlide].classList.remove('active');
+        currentSlide = index;
+        slides[currentSlide].classList.add('active');
+        dots[currentSlide].classList.add('active');
+      }
+
+      function nextSlide() { goToSlide((currentSlide + 1) % slides.length); }
+      function startSlider() { slideInterval = setInterval(nextSlide, 5000); }
+      function stopSlider() { clearInterval(slideInterval); }
+
+      dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+          stopSlider();
+          goToSlide(index);
+          startSlider(); 
+        });
+      });
+
+      carouselContainer.addEventListener('mouseenter', stopSlider);
+      carouselContainer.addEventListener('mouseleave', startSlider);
+      startSlider();
+      
+      window.addEventListener('hashchange', () => stopSlider(), { once: true });
+    }
+
+    // 3. Fetch Products and Render Grids
+    const productSnap = await getDocs(collection(db, 'products'));
+    const allProducts = productSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
     const renderGrid = (gridId, idArray, fallbackText) => {
       const grid = document.getElementById(gridId);
       if (!grid) return;
@@ -259,7 +250,6 @@ export async function initHome() {
         : `<p style="color: var(--color-text-muted);">${fallbackText}</p>`;
     };
 
-    // Render the 3 Tiers using CMS data
     renderGrid('home-trending-grid', settings.trending, 'No items configured in CMS.');
     renderGrid('home-tech-grid', settings.tech, 'No items configured in CMS.');
     renderGrid('home-new-grid', settings.newArrivals, 'No items configured in CMS.');

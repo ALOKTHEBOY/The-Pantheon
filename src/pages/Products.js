@@ -13,15 +13,24 @@ export function Products() {
           
           <select id="category-filter" style="padding: 8px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main);">
             <option value="all">All Categories</option>
-            <option value="electronics">Electronics</option>
-            <option value="apparel">Apparel</option>
-            <option value="home">Home</option>
-            <option value="beauty">Beauty & Personal Care</option>
-            <option value="sports">Sports & Outdoors</option>
-            <option value="toys">Toys & Games</option>
-            <option value="books">Books</option>
-            <option value="other">Other</option>
-            <option value="outfits">Outfits</option>
+            <option value="relics">Ancient Relics & Artifacts</option>
+            <option value="hyperdrive">Propulsion & Hyperdrives</option>
+            <option value="cybernetics">Cybernetic Enhancements</option>
+            <option value="weapons">Mythic & Plasma Weapons</option>
+            <option value="vehicles">UFOs & Hovercrafts</option>
+            <option value="armor">Tactical & Historical Armor</option>
+            <option value="realestate">Private Planets & Stations</option>
+            <option value="apparel">Time-Traveler Couture</option>
+            <option value="quantum">Quantum & AI Cores</option>
+            <option value="potions">Elixirs & Nanite Serums</option>
+            <option value="art">Holographic & Time Art</option>
+            <option value="shields">Energy Shields & Forcefields</option>
+            <option value="chronos">Chrono-Devices & Timepieces</option>
+            <option value="beasts">Bio-Engineered Beasts</option>
+            <option value="gourmet">Exotic & Galactic Delicacies</option>
+            <option value="energy">Fusion Cores & Energy</option>
+            <option value="droids">Autonomous Droids</option>
+            <option value="other">Unclassified Marvels</option>
           </select>
 
           <select id="sort-filter" style="padding: 8px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main);">
