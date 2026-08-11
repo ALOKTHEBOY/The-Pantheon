@@ -9,13 +9,12 @@ import { getFirestore } from "firebase/firestore"; // 1. Add this import
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyBMYJJlqRRb3gIYqDGlODRnPud2Y6DQY5U",
-  authDomain: "novacart-pro.firebaseapp.com",
-  projectId: "novacart-pro",
-  storageBucket: "novacart-pro.firebasestorage.app",
-  messagingSenderId: "1088484341517",
-  appId: "1:1088484341517:web:f9ce2d917433db387ae244",
-  measurementId: "G-JW6SMQ5J58"
+  apiKey: "AIzaSyBXibxcdOESaSSKhns-4nwqNFNzplidRyE",
+  authDomain: "the-pantheon-358ec.firebaseapp.com",
+  projectId: "the-pantheon-358ec",
+  storageBucket: "the-pantheon-358ec.firebasestorage.app",
+  messagingSenderId: "333094260423",
+  appId: "1:333094260423:web:ed5379a71988802c59b8e2"
 };
 
 // Initialize Firebase
