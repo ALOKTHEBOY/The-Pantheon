@@ -1,11 +1,11 @@
 // Load initial state from LocalStorage or default to an empty array
-const savedCart = JSON.parse(localStorage.getItem('novacart_items')) || [];
+const savedCart = JSON.parse(localStorage.getItem('pantheon_items')) || [];
 
 export const cartStore = {
   items: savedCart,
   
   save() {
-    localStorage.setItem('novacart_items', JSON.stringify(this.items));
+    localStorage.setItem('pantheon_items', JSON.stringify(this.items));
     window.dispatchEvent(new CustomEvent('cartUpdated'));
   },
 
