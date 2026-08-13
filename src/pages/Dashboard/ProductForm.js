@@ -49,16 +49,17 @@ export function DashboardProductForm() {
           <!-- SECTION 2: PRICING -->
           <div style="padding-bottom: 1rem; border-bottom: 1px solid var(--color-border);">
              <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--color-text-muted); text-transform: uppercase;">2. Pricing</h3>
-            <div style="display: flex; gap: 1rem; align-items: flex-end;">
-              <div style="flex: 1;">
+            <!-- MOBILE FIX: Converted rigid flex row to a responsive grid that stacks on small screens -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; align-items: flex-end;">
+              <div>
                 <label style="display: block; margin-bottom: 4px; font-size: 0.9rem;">Original (₹)</label>
                 <input type="number" step="0.01" min="0" id="prod-original-price" required style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main);">
               </div>
-              <div style="flex: 1;">
+              <div>
                 <label style="display: block; margin-bottom: 4px; font-size: 0.9rem;">Discount (<span id="disc-val">0</span>%)</label>
                 <input type="range" id="prod-discount-slider" min="0" max="100" value="0" style="width: 100%;">
               </div>
-              <div style="flex: 1;">
+              <div>
                 <label style="display: block; margin-bottom: 4px; font-size: 0.9rem;">Final Offer (₹)</label>
                 <input type="number" step="0.01" min="0" id="prod-offer-price" required style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-main);">
               </div>
@@ -110,7 +111,6 @@ export function DashboardProductForm() {
   `;
 }
 
-// NOTE: We now accept an optional 'productId' argument from the router
 export async function initDashboardProductForm(productId = null) {
   const form = document.getElementById('add-product-form');
   const fileInput = document.getElementById('prod-images');
@@ -123,11 +123,10 @@ export async function initDashboardProductForm(productId = null) {
   const videoInput = document.getElementById('prod-video-url');
   const highlightsInput = document.getElementById('prod-highlights');
 
-  let primaryImageIndex = 0; // NEW: Tracks which image is the main thumbnail
+  let primaryImageIndex = 0; 
 
   if (!form) return;
 
-  // --- PRE-FILL DATA IF EDITING ---
   if (productId) {
     document.getElementById('form-title').textContent = 'Edit Product';
     document.getElementById('submit-btn').textContent = 'Update Product';
@@ -144,14 +143,13 @@ export async function initDashboardProductForm(productId = null) {
         document.getElementById('prod-about').value = product.about || '';
         highlightsInput.value = product.highlights ? product.highlights.join('\n') : '';
         videoInput.value = product.video || '';
-        syncFromFinalPrice(); // Update the slider visually
+        syncFromFinalPrice(); 
       }
     } catch (error) {
       alert("Error loading product data.");
     }
   }
 
-  // --- FILE MANAGER LOGIC ---
   fileInput.addEventListener('change', renderPreviews);
 
   function renderPreviews() {
@@ -159,11 +157,10 @@ export async function initDashboardProductForm(productId = null) {
     const files = fileInput.files;
     
     if (!files || files.length === 0) {
-      primaryImageIndex = 0; // Reset if cleared
+      primaryImageIndex = 0; 
       return;
     }
 
-    // Fallback if the selected primary image gets deleted
     if (primaryImageIndex >= files.length) primaryImageIndex = 0;
 
     Array.from(files).forEach((file, index) => {
@@ -177,7 +174,6 @@ export async function initDashboardProductForm(productId = null) {
         thumbWrapper.innerHTML = `
           <img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; opacity: ${isPrimary ? '1' : '0.6'};">
           
-          <!-- NEW: Set Main Button overlay -->
           <div class="set-primary-btn" data-index="${index}" style="position: absolute; bottom: 0; left: 0; right: 0; background: ${isPrimary ? 'var(--color-primary)' : 'rgba(0,0,0,0.6)'}; color: white; text-align: center; font-size: 0.65rem; padding: 4px 0; font-weight: bold; cursor: pointer;">
             ${isPrimary ? 'MAIN PIC' : 'SET MAIN'}
           </div>
@@ -191,7 +187,6 @@ export async function initDashboardProductForm(productId = null) {
   }
 
   previewContainer.addEventListener('click', (e) => {
-    // 1. Handle Removing an Image
     if (e.target.classList.contains('remove-thumb-btn')) {
       const indexToRemove = parseInt(e.target.getAttribute('data-index'));
       const dt = new DataTransfer();
@@ -203,10 +198,9 @@ export async function initDashboardProductForm(productId = null) {
       renderPreviews();
     }
     
-    // 2. NEW: Handle Setting the Primary Image
     if (e.target.classList.contains('set-primary-btn')) {
       primaryImageIndex = parseInt(e.target.getAttribute('data-index'));
-      renderPreviews(); // Re-render to update the visual highlighting
+      renderPreviews(); 
     }
   });
 
@@ -216,7 +210,6 @@ export async function initDashboardProductForm(productId = null) {
     previewContainer.innerHTML = '';
   });
 
-  // --- PRICING LOGIC ---
   function syncFromOriginalOrSlider() {
     const orig = parseFloat(origInput.value) || 0;
     const disc = parseFloat(discSlider.value) || 0;
@@ -238,7 +231,6 @@ export async function initDashboardProductForm(productId = null) {
   discSlider.addEventListener('input', syncFromOriginalOrSlider);
   finalInput.addEventListener('input', syncFromFinalPrice);
 
-  // --- FORM SUBMISSION LOGIC ---
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -305,7 +297,6 @@ export async function initDashboardProductForm(productId = null) {
 
       if (base64Images.length > 0) {
         payload.images = base64Images;
-        // NEW: Save the specifically selected main image
         payload.image = base64Images[primaryImageIndex] || base64Images[0]; 
       }
 
@@ -319,7 +310,6 @@ export async function initDashboardProductForm(productId = null) {
         showToast("Product added successfully!");
       }
 
-      // Redirect back to the catalog list
       window.location.hash = '#/dashboard/products';
       
     } catch (error) {

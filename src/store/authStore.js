@@ -1,5 +1,6 @@
 import { auth } from '../services/firebase.js';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { notificationStore } from './notificationStore.js';
 
 export const authStore = {
   user: null,
@@ -7,6 +8,14 @@ export const authStore = {
   init() {
     onAuthStateChanged(auth, (user) => {
       this.user = user;
+      
+      // NEW: Sync notifications with login/logout state
+      if (user) {
+        notificationStore.init(user.uid);
+      } else {
+        notificationStore.clear();
+      }
+      
       window.dispatchEvent(new CustomEvent('authStateChanged'));
     });
   },

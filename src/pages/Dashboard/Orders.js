@@ -1,13 +1,13 @@
 import { db } from '../../services/firebase.js';
 import { collection, doc, updateDoc, deleteDoc, getDocs } from 'firebase/firestore';
 import { showToast } from '../../utils/toast.js';
+import { notificationStore } from '../../store/notificationStore.js'; // NEW IMPORT
 
 export function DashboardOrders() {
   return `
     <div style="max-width: 1200px; margin: 2rem auto; padding: 0 1rem;">
       <div style="padding: var(--spacing-lg); background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
         
-        <!-- NEW: Search and Filter Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
           <h2 style="margin: 0;">Store Orders</h2>
           
@@ -35,16 +35,14 @@ export async function initDashboardOrders() {
   const searchInput = document.getElementById('order-search');
   const statusFilter = document.getElementById('order-status-filter');
   
-  let allOrders = []; // Store fetched orders globally for this module
+  let allOrders = []; 
 
   if (!ordersListContainer) return;
 
-  // NEW: Dedicated render function for filtering
   function renderOrders() {
     const searchTerm = (searchInput ? searchInput.value : '').toLowerCase();
     const statusTerm = statusFilter ? statusFilter.value : 'all';
 
-    // 1. Filter the array in memory
     let filtered = allOrders.filter(order => {
       const name = (order.shippingDetails?.fullName || order.customerName || '').toLowerCase();
       const email = (order.email || order.customerEmail || '').toLowerCase();
@@ -57,13 +55,11 @@ export async function initDashboardOrders() {
       return matchesSearch && matchesStatus;
     });
 
-    // 2. Handle empty results
     if (filtered.length === 0) {
       ordersListContainer.innerHTML = '<p style="color: var(--color-text-muted);">No orders match your search criteria.</p>';
       return;
     }
 
-    // 3. Render the filtered list
     ordersListContainer.innerHTML = filtered.map(order => {
       const orderDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'Date Unknown';
       const name = order.shippingDetails?.fullName || order.customerName || 'Unknown Customer';
@@ -133,27 +129,24 @@ export async function initDashboardOrders() {
       const snapshot = await getDocs(collection(db, "orders"));
       allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       
-      // Sort newest to oldest
       allOrders.sort((a, b) => {
         const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
         const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
         return dateB - dateA;
       });
 
-      renderOrders(); // Render initially
+      renderOrders(); 
     } catch (error) {
       ordersListContainer.innerHTML = '<p style="color: #ef4444;">Error loading orders.</p>';
     }
   }
 
-  // Load the data from Firestore on mount
   await loadOrders();
 
-  // NEW: Listeners for real-time filtering
   if (searchInput) searchInput.addEventListener('input', renderOrders);
   if (statusFilter) statusFilter.addEventListener('change', renderOrders);
 
-  // Status update listener (with UX loading state)
+  // UPGRADED: Status update listener now fires a targeted notification!
   ordersListContainer.addEventListener('change', async (e) => {
     if (e.target.classList.contains('status-select')) {
       const id = e.target.getAttribute('data-id');
@@ -164,9 +157,20 @@ export async function initDashboardOrders() {
         
         await updateDoc(doc(db, 'orders', id), { status: newStatus });
         
-        // Update local array so it stays filtered correctly if re-rendered
         const updatedOrder = allOrders.find(o => o.id === id);
-        if (updatedOrder) updatedOrder.status = newStatus;
+        if (updatedOrder) {
+          updatedOrder.status = newStatus;
+          
+          // 🔥 MAGIC HAPPENS HERE: Send targeted notification to the customer!
+          if (updatedOrder.userId) {
+            const firstItemName = updatedOrder.items && updatedOrder.items.length > 0 ? updatedOrder.items[0].name : 'artifact';
+            const statusEmoji = newStatus === 'shipped' ? '🚀' : newStatus === 'delivered' ? '🏛️' : '📦';
+            const notifMessage = `${statusEmoji} Your order for ${firstItemName} is now marked as ${newStatus.toUpperCase()}!`;
+            
+            // Pass the targetUserId (3rd argument) so it goes directly to their account
+            notificationStore.addNotification(notifMessage, 'notify', updatedOrder.userId);
+          }
+        }
         
         showToast(`Order status updated to ${newStatus.toUpperCase()}`);
       } catch (error) {
@@ -174,12 +178,11 @@ export async function initDashboardOrders() {
       } finally {
         e.target.style.opacity = '1';
         e.target.style.pointerEvents = 'auto';
-        renderOrders(); // Re-render to apply any active filters
+        renderOrders(); 
       }
     }
   });
 
-  // Delete listener
   ordersListContainer.addEventListener('click', async (e) => {
     if (e.target.classList.contains('delete-order-btn')) {
       const id = e.target.getAttribute('data-id');

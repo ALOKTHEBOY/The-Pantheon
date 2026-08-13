@@ -14,6 +14,7 @@ import { ProductDetails, initProductDetails } from './pages/ProductDetails.js';
 import { Wishlist, initWishlist } from './pages/Wishlist.js';
 import { Login, initLogin } from './pages/Login.js';
 import { Register, initRegister } from './pages/Register.js';
+import { About, initAbout } from './pages/About.js';
 import { NotFound } from './pages/NotFound.js'; // NEW: 404 Page
 
 // Stores
@@ -54,6 +55,7 @@ const routes = {
   '#/checkout': { render: Checkout, init: initCheckout },
   '#/login': { render: Login, init: initLogin },
   '#/register': { render: Register, init: initRegister },
+  '#/about': { render: About, init: initAbout },
   
   // Modular Profile Routes
   '#/profile': { render: ProfileInfo, init: initProfileInfo },
@@ -62,13 +64,14 @@ const routes = {
   
   // FINAL: Modular Dashboard Routes
   '#/dashboard': { render: DashboardOverview, init: initDashboardOverview },
-  '#/dashboard/analytics': { render: DashboardOverview, init: initDashboardOverview },
+  '#/dashboard/analytics': { render: DashboardAnalytics, init: initDashboardAnalytics },
   '#/dashboard/products': { render: DashboardProductList, init: initDashboardProductList },
   '#/dashboard/products/add': { render: DashboardProductForm, init: () => initDashboardProductForm(null) },
   '#/dashboard/orders': { render: DashboardOrders, init: initDashboardOrders }, 
   '#/dashboard/settings': { render: DashboardSettings, init: initDashboardSettings },
   '#/dashboard/home': { render: ManageHome, init: initManageHome },
 };
+
 
 // Helper: Highlights the active link in the navigation bar
 function updateActiveNavLink(currentPath) {
