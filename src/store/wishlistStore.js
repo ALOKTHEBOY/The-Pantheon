@@ -60,7 +60,7 @@ class WishlistStore {
   async toggle(product) {
     if (!authStore.user) {
       alert("Please log in to save items to your wishlist.");
-      window.location.hash = '#login';
+      window.location.hash = '#/login';
       return;
     }
 

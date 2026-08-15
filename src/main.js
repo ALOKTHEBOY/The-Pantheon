@@ -41,11 +41,9 @@ import { ProfileInfo, initProfileInfo } from './pages/Profile/Info.js';
 import { ProfileHistory, initProfileHistory } from './pages/Profile/History.js';
 import { ProfileSettings, initProfileSettings } from './pages/Profile/Settings.js';
 
-// --- 2. INITIALIZATION ---
-authStore.init(); // Starts listening to Firebase user session
 const app = document.querySelector("#app");
 
-// --- 3. ROUTER CONFIGURATION ---
+// --- 2. ROUTER CONFIGURATION ---
 const routes = {
   '': { render: Home, init: initHome },
   '#/': { render: Home, init: initHome },
@@ -59,8 +57,8 @@ const routes = {
   
   // Modular Profile Routes
   '#/profile': { render: ProfileInfo, init: initProfileInfo },
-  '#/profile/orders': { render: ProfileHistory, init: initProfileHistory }, // NEW: Order History Module
-  '#/profile/settings': { render: ProfileSettings, init: initProfileSettings }, // FINAL: Settings Module
+  '#/profile/orders': { render: ProfileHistory, init: initProfileHistory }, 
+  '#/profile/settings': { render: ProfileSettings, init: initProfileSettings }, 
   
   // FINAL: Modular Dashboard Routes
   '#/dashboard': { render: DashboardOverview, init: initDashboardOverview },
@@ -71,7 +69,6 @@ const routes = {
   '#/dashboard/settings': { render: DashboardSettings, init: initDashboardSettings },
   '#/dashboard/home': { render: ManageHome, init: initManageHome },
 };
-
 
 // Helper: Highlights the active link in the navigation bar
 function updateActiveNavLink(currentPath) {
@@ -88,12 +85,11 @@ function updateActiveNavLink(currentPath) {
 // Core Router Logic
 function router() {
   let fullHash = window.location.hash;
-  // NEW: Strip off query parameters so the router only reads the base path (e.g., '#/products')
   let path = fullHash.split('?')[0]; 
   
   if (path === '#' || path === '') path = '#/';
   
-  // Handle Dynamic Product Details Route (Customer View)
+  // Handle Dynamic Product Details Route
   if (path.startsWith('#/product/')) {
     const productId = path.split('/')[2]; 
     app.innerHTML = Layout(ProductDetails()); 
@@ -102,11 +98,11 @@ function router() {
     return; 
   }
 
-  // NEW: Catch Admin Edit Product Route (Admin View)
+  // Catch Admin Edit Product Route
   if (path.startsWith('#/dashboard/products/edit/')) {
-    const productId = path.split('/').pop(); // Extracts the ID from the URL
-    app.innerHTML = Layout(DashboardProductForm()); // Render the Form
-    initDashboardProductForm(productId); // Initialize with the ID so it fetches data
+    const productId = path.split('/').pop(); 
+    app.innerHTML = Layout(DashboardProductForm()); 
+    initDashboardProductForm(productId); 
     return; 
   }
 
@@ -124,7 +120,7 @@ function router() {
     return;
   }
 
-  // Handle Standard Routes (If the path isn't in the routes object, render the 404 page)
+  // Handle Standard Routes
   const route = routes[path] || { render: NotFound, init: null };
   app.innerHTML = Layout(route.render());
   
@@ -135,24 +131,36 @@ function router() {
   updateActiveNavLink(path);
 }
 
-// --- 4. GLOBAL EVENT LISTENERS ---
-// Triggers router when the URL hash changes
-window.addEventListener('hashchange', router);
+// --- 3. APPLICATION BOOTSTRAP (FIXED LIFECYCLE) ---
 
-// Initial page load setup
-window.addEventListener('DOMContentLoaded', () => {
-  router();
+async function bootstrap() {
+  // 1. Pause execution until Firebase explicitly resolves the user session
+  await authStore.init();
+
+  // 2. Now that auth state is explicitly known, attach the navigation listener
+  window.addEventListener('hashchange', router);
+
+  // 3. Fire initial UI setup
   window.dispatchEvent(new CustomEvent('cartUpdated')); 
   initDropdowns(); 
   
-  // Smart Theme Initialization
+  // 4. Smart Theme Initialization
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     document.body.classList.add('dark-mode');
   } else {
     document.body.classList.remove('dark-mode');
   }
-});
+
+  // 5. Trigger the router securely for the first time
+  router();
+}
+
+// Wait for the HTML document to fully load before kicking off the bootstrap sequence
+window.addEventListener('DOMContentLoaded', bootstrap);
+
+
+// --- 4. GLOBAL EVENT LISTENERS ---
 
 // Updates the header cart badge dynamically
 window.addEventListener('cartUpdated', () => {
@@ -181,7 +189,6 @@ window.addEventListener('notificationsUpdated', () => {
   const dropdown = document.getElementById('notification-dropdown');
   
   if (bellBtn && dropdown) {
-    // 1. Update the Red Badge
     const unreadCount = notificationStore.getUnreadCount();
     let badge = bellBtn.querySelector('span');
     
@@ -196,7 +203,6 @@ window.addEventListener('notificationsUpdated', () => {
       badge.remove();
     }
 
-    // 2. Update the Dropdown List HTML
     const listHtml = notificationStore.notifications.length > 0 
       ? notificationStore.notifications.map(n => `
           <div style="padding: 10px; border-bottom: 1px solid var(--color-border); opacity: ${n.read ? '0.6' : '1'}; transition: opacity 0.3s;">
@@ -215,14 +221,13 @@ window.addEventListener('notificationsUpdated', () => {
 
 // Refreshes the view when a user logs in or out
 window.addEventListener('authStateChanged', async () => {
-  // NEW: Fetch the user's saved wishlist from Firebase before rendering
   await wishlistStore.loadWishlist(); 
-  
   window.dispatchEvent(new Event('hashchange')); 
 });
 
+
 // --- 5. GLOBAL CLICK DELEGATION ---
-// Handles all click interactions efficiently at the document level
+
 document.addEventListener('click', async (e) => {
 
   // Mobile Hamburger Menu Toggle
@@ -242,7 +247,7 @@ document.addEventListener('click', async (e) => {
     }
   }
   
-  // NEW: Dropdown Theme Selector Logic
+  // Dropdown Theme Selector Logic
   if (e.target.getAttribute('href')?.startsWith('#/theme/')) {
     e.preventDefault();
     const mode = e.target.getAttribute('href').split('/')[2];
@@ -262,7 +267,6 @@ document.addEventListener('click', async (e) => {
       }
     }
     
-    // Close the dropdown and nav menu after selecting
     document.getElementById('main-nav-list')?.classList.remove('mobile-open');
     document.querySelectorAll('.dropdown-wrapper').forEach(d => d.classList.remove('is-active'));
     showToast(`Theme changed to ${mode}`);
@@ -276,6 +280,7 @@ document.addEventListener('click', async (e) => {
     const product = await getProductById(productId);
     
     if (product) {
+      settingsStore.playSound('notify'); // 🔊 ADD THIS LINE
       wishlistStore.toggle(product);
       const isNowWishlisted = wishlistStore.hasItem(productId);
       button.textContent = isNowWishlisted ? '❤️' : '🤍';
@@ -284,9 +289,9 @@ document.addEventListener('click', async (e) => {
     return; 
   }
 
-  // UPDATED: Logout Logic (Now catches the dropdown link instead of a button ID)
+  // Logout Logic
   if (e.target.getAttribute('href') === '#/logout') {
-    e.preventDefault(); // Prevents the router from trying to load a '#logout' page
+    e.preventDefault(); 
     authStore.logout();
     return;
   }
@@ -303,7 +308,7 @@ document.addEventListener('click', async (e) => {
     const product = await getProductById(productId); 
     
     if (product) {
-      settingsStore.playSound('cart'); // Play Sound!
+      settingsStore.playSound('cart'); 
       cartStore.addToCart(product);
       showToast(`${product.name} added to cart!`);
     }
@@ -312,7 +317,7 @@ document.addEventListener('click', async (e) => {
     button.disabled = false;
   }
 
-  // Notification Bell Toggle Logic (BUG FIXED: Removed page refresh)
+  // Notification Bell Toggle Logic
   if (e.target.closest('#notification-bell')) {
     const dropdown = document.getElementById('notification-dropdown');
     const bellBtn = e.target.closest('#notification-bell');
@@ -321,16 +326,14 @@ document.addEventListener('click', async (e) => {
     dropdown.style.display = isHidden ? 'block' : 'none';
     
     if (isHidden && notificationStore.getUnreadCount() > 0) {
-      notificationStore.markAllAsRead(); // Updates data state
-      
-      // Removes the red badge from the UI instantly without reloading the page
+      notificationStore.markAllAsRead(); 
       const badge = bellBtn.querySelector('span');
       if (badge) badge.remove(); 
     }
     return;
   }
   
-  // Close Notification Dropdown if clicking anywhere else on the screen
+  // Close Notification Dropdown 
   const dropdown = document.getElementById('notification-dropdown');
   if (dropdown && dropdown.style.display === 'block' && !e.target.closest('#notification-dropdown') && !e.target.closest('#notification-bell')) {
     dropdown.style.display = 'none';

@@ -5,37 +5,45 @@ import { settingsStore } from './settingsStore.js';
 export const notificationStore = {
   notifications: [],
   unsubscribe: null, 
+  isInitialLoad: true, // Tracks initial fetch to avoid playing sound for old notifications
 
-  // NEW: Real-time database listener locked to the specific user
+  // Real-time database listener locked to the specific user
   init(userId) {
     if (!userId) return;
+    this.isInitialLoad = true;
     
     const q = query(collection(db, 'notifications'), where('userId', '==', userId));
     
-    // onSnapshot listens to the database live. No refresh needed!
+    // onSnapshot listens to the database live
     this.unsubscribe = onSnapshot(q, (snapshot) => {
-      this.notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const incoming = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       
-      // Sort so the newest notifications are always at the top
-      this.notifications.sort((a, b) => b.timestamp - a.timestamp);
+      // Sort so newest notifications are at the top
+      incoming.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+      // Play sound if a brand new notification arrives after initial load
+      if (!this.isInitialLoad && incoming.length > this.notifications.length) {
+        settingsStore.playSound('notify');
+      }
+
+      this.notifications = incoming;
+      this.isInitialLoad = false;
       
       window.dispatchEvent(new CustomEvent('notificationsUpdated'));
     });
   },
 
-  // NEW: Wipes the UI memory immediately on logout
   clear() {
     if (this.unsubscribe) {
       this.unsubscribe();
       this.unsubscribe = null;
     }
     this.notifications = [];
+    this.isInitialLoad = true;
     window.dispatchEvent(new CustomEvent('notificationsUpdated'));
   },
 
-  // UPGRADED: Now saves to Firestore and can target specific users
   async addNotification(text, soundType = 'notify', targetUserId = null) {
-    // If Admin sends an update, use targetUserId. Otherwise, use the logged-in user.
     const userId = targetUserId || (auth.currentUser ? auth.currentUser.uid : null);
     if (!userId) return;
 
@@ -50,8 +58,8 @@ export const notificationStore = {
         time: timeString,
         timestamp: Date.now()
       });
-      
-      // Only play the sound if the notification is for the person currently looking at the screen!
+
+      // Play sound locally if the user is triggering a notification for themselves
       if (soundType !== 'none' && (!targetUserId || targetUserId === auth.currentUser?.uid)) {
         settingsStore.playSound(soundType);
       }
@@ -64,7 +72,6 @@ export const notificationStore = {
     return this.notifications.filter(n => !n.read).length;
   },
 
-  // UPGRADED: Updates read status securely in the database using a Batch write
   async markAllAsRead() {
     const unread = this.notifications.filter(n => !n.read);
     if (unread.length === 0) return;
