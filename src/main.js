@@ -89,7 +89,7 @@ function router() {
   
   if (path === '#' || path === '') path = '#/';
   
-  // Handle Dynamic Product Details Route
+  // 1. Handle PUBLIC Dynamic Route (Product Details)
   if (path.startsWith('#/product/')) {
     const productId = path.split('/')[2]; 
     app.innerHTML = Layout(ProductDetails()); 
@@ -98,6 +98,28 @@ function router() {
     return; 
   }
 
+  // ==========================================
+  // 2. SECURITY GUARDS (Must happen before protected routes render)
+  // ==========================================
+  
+  // Guard A: Require Authentication
+  if ((path.startsWith('#/profile') || path.startsWith('#/dashboard')) && !authStore.user) {
+    window.location.hash = '#/login'; 
+    return; 
+  }
+
+  // Guard B: Require Master Admin
+  const adminEmail = 'alokb7837@gmail.com'; 
+  if (path.startsWith('#/dashboard') && authStore.user.email !== adminEmail) {
+    alert("Access Denied: Admins Only");
+    window.location.hash = '#/'; 
+    return;
+  }
+
+  // ==========================================
+  // 3. PROTECTED Dynamic Routes
+  // ==========================================
+  
   // Catch Admin Edit Product Route
   if (path.startsWith('#/dashboard/products/edit/')) {
     const productId = path.split('/').pop(); 
@@ -106,21 +128,9 @@ function router() {
     return; 
   }
 
-  // Handle Protected Routes (Security Check)
-  if ((path.startsWith('#/profile') || path.startsWith('#/dashboard')) && !authStore.user) {
-    window.location.hash = '#/login'; 
-    return; 
-  }
-
-  // Admin-only Route Protection
-  const adminEmail = 'alokb7837@gmail.com'; 
-  if (path.startsWith('#/dashboard') && authStore.user.email !== adminEmail) {
-    alert("Access Denied: Admins Only");
-    window.location.hash = '#/'; 
-    return;
-  }
-
-  // Handle Standard Routes
+  // ==========================================
+  // 4. Standard Static Routes
+  // ==========================================
   const route = routes[path] || { render: NotFound, init: null };
   app.innerHTML = Layout(route.render());
   
