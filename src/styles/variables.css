@@ -3,6 +3,8 @@
   --color-primary: #7c3aed; 
   --color-background: transparent; 
   --color-surface: rgba(255, 255, 255, 0.85); 
+  --color-surface-solid: #ffffff;
+  --color-dropdown-bg: #ffffff;
   --color-text-main: #0f172a;
   --color-text-muted: #64748b;
   --color-border: rgba(15, 23, 42, 0.08);
@@ -19,6 +21,8 @@ body.dark-mode {
   --color-primary: #d4af37; 
   --color-background: transparent; 
   --color-surface: rgba(15, 23, 42, 0.75); 
+  --color-surface-solid: #0f172a;
+  --color-dropdown-bg: #1e293b;
   --color-text-main: #f8fafc;
   --color-text-muted: #94a3b8;
   --color-border: rgba(255, 255, 255, 0.08);

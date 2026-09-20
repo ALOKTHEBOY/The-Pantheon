@@ -240,3 +240,136 @@
     display: flex;
   }
 }
+
+/* ==========================================================================
+   1. Form Controls & Admin Select Dropdowns (Light & Dark Mode Contrast)
+   ========================================================================== */
+select {
+  color-scheme: light;
+  background-color: var(--color-dropdown-bg, #ffffff) !important;
+  color: var(--color-text-main, #0f172a) !important;
+  border: 1px solid var(--color-border);
+}
+
+select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+body.dark-mode select {
+  color-scheme: dark;
+  background-color: var(--color-dropdown-bg, #1e293b) !important;
+  color: var(--color-text-main, #f8fafc) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+body.dark-mode select option {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+/* Specific Admin & Dashboard Select elements (overriding inline background/color) */
+body.dark-mode select.status-select,
+body.dark-mode #order-status-filter,
+body.dark-mode #dashboard-sort,
+body.dark-mode #category-filter,
+body.dark-mode #sort-filter,
+body.dark-mode #section-selector,
+body.dark-mode #slide-category,
+body.dark-mode #prod-category {
+  background-color: var(--color-dropdown-bg, #1e293b) !important;
+  color: var(--color-text-main, #f8fafc) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+body.dark-mode select:focus {
+  outline: none;
+  border-color: var(--color-primary, #d4af37) !important;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
+}
+
+/* ==========================================================================
+   2. Notification Dropdown Popup (Light & Dark Mode Contrast)
+   ========================================================================== */
+#notification-dropdown {
+  background-color: var(--color-surface-solid, #ffffff) !important;
+  color: var(--color-text-main, #0f172a) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md, 12px) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+}
+
+#notification-dropdown > div:first-child {
+  color: var(--color-text-main, #0f172a) !important;
+  background-color: rgba(0, 0, 0, 0.03) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+#notification-dropdown > div:last-child > div {
+  border-bottom: 1px solid var(--color-border) !important;
+  background-color: var(--color-surface-solid, #ffffff) !important;
+  transition: background-color 0.15s ease;
+}
+
+#notification-dropdown > div:last-child > div:hover {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+#notification-dropdown [style*="color: var(--color-text-main)"],
+#notification-dropdown div > div:first-child {
+  color: var(--color-text-main, #0f172a) !important;
+}
+
+#notification-dropdown [style*="color: var(--color-text-muted)"],
+#notification-dropdown div > div:last-child {
+  color: var(--color-text-muted, #64748b) !important;
+}
+
+/* Ensure read notifications remain legible and maintain proper contrast */
+#notification-dropdown div[style*="opacity: 0.6"] {
+  opacity: 0.75 !important;
+  background-color: rgba(0, 0, 0, 0.015) !important;
+}
+
+/* Dark Mode Notification Dropdown */
+body.dark-mode #notification-dropdown {
+  background-color: var(--color-surface-solid, #0f172a) !important;
+  color: var(--color-text-main, #f8fafc) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 14px 35px -5px rgba(0, 0, 0, 0.8), 0 8px 15px -6px rgba(0, 0, 0, 0.6) !important;
+}
+
+body.dark-mode #notification-dropdown > div:first-child {
+  color: var(--color-text-main, #f8fafc) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode #notification-dropdown > div:last-child > div {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background-color: var(--color-surface-solid, #0f172a) !important;
+}
+
+body.dark-mode #notification-dropdown > div:last-child > div:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+body.dark-mode #notification-dropdown [style*="color: var(--color-text-main)"],
+body.dark-mode #notification-dropdown div > div:first-child {
+  color: var(--color-text-main, #f8fafc) !important;
+}
+
+body.dark-mode #notification-dropdown [style*="color: var(--color-text-muted)"],
+body.dark-mode #notification-dropdown div > div:last-child {
+  color: var(--color-text-muted, #94a3b8) !important;
+}
+
+body.dark-mode #notification-dropdown div[style*="opacity: 0.6"] {
+  opacity: 0.7 !important;
+  background-color: rgba(30, 41, 59, 0.4) !important;
+}
