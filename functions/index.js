@@ -1,5 +1,6 @@
 const { onRequest, onCall, HttpsError } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 
 // Initialize Firebase Admin SDK
 admin.initializeApp();
@@ -154,8 +155,8 @@ exports.prepareCheckout = onCall(async (request) => {
     shippingDetails: cleanShipping,
     paymentIntentId: paymentIntentId,
     status: "pending",
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
   });
 
   return {
@@ -269,7 +270,7 @@ exports.stripeWebhook = onRequest(async (req, res) => {
         checkoutSessionId: checkoutSessionId,
         shippingDetails: sessionData.shippingDetails,
         createdAt: nowIso,
-        paidAt: admin.firestore.FieldValue.serverTimestamp()
+        paidAt: FieldValue.serverTimestamp()
       };
 
       await orderRef.set(orderData);
@@ -279,8 +280,8 @@ exports.stripeWebhook = onRequest(async (req, res) => {
         status: "paid",
         paymentIntentId: paymentIntent.id,
         orderId: paymentIntent.id,
-        paidAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        paidAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
       });
 
       // 6. CREATE TRUSTED SERVER NOTIFICATION
@@ -316,7 +317,7 @@ exports.stripeWebhook = onRequest(async (req, res) => {
         await db.collection("checkout_sessions").doc(checkoutSessionId).update({
           status: "failed",
           lastError: paymentIntent.last_payment_error?.message || "Payment declined",
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          updatedAt: FieldValue.serverTimestamp()
         });
       } catch (e) {
         console.error("Error updating failed checkout session:", e);
@@ -386,14 +387,14 @@ exports.simulateMockFulfillment = onCall(async (request) => {
     checkoutSessionId: checkoutSessionId,
     shippingDetails: sessionData.shippingDetails,
     createdAt: nowIso,
-    paidAt: admin.firestore.FieldValue.serverTimestamp()
+    paidAt: FieldValue.serverTimestamp()
   });
 
   await sessionRef.update({
     status: "paid",
     orderId: paymentIntentId,
-    paidAt: admin.firestore.FieldValue.serverTimestamp(),
-    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    paidAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
   });
 
   const firstItemName = sessionData.items?.[0]?.name || "artifact";
