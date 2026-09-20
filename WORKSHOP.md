@@ -40,6 +40,19 @@ This document tracks the major architectural decisions, bug fixes, custom system
 *   **Secrets Management:** `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` exist only in `functions/.env` (local) or Firebase Secret Manager (production). Never expose secret credentials to the browser or commit them to version control.
 *   **Price Authority:** The frontend `cartStore` calculates prices for UI display only. The backend re-calculates all totals from Firestore product documents during `prepareCheckout`.
 
+### Database Schema (`checkout_sessions`)
+*   **Document ID:** Auto-generated Firestore ID (`checkoutSessionId`)
+*   `userId`: Customer's verified Firebase UID
+*   `userEmail`: Customer's verified email
+*   `items`: Array of trusted product snapshots (`productId`, `name`, `price`, `quantity`, `lineTotal`)
+*   `totalAmount`: Server-calculated total
+*   `subtotal`: Server-calculated subtotal
+*   `currency`: `'INR'`
+*   `shippingDetails`: Validated name, phone, address, city, zip
+*   `paymentIntentId`: Associated Stripe PaymentIntent ID
+*   `status`: `'pending'` | `'paid'` | `'failed'`
+*   `createdAt`: Server Timestamp
+
 ### Database Schema (`orders`)
 *   **Document ID:** `payment_intent.id` (Guarantees atomic idempotency on webhook retries)
 *   `userId`: Customer's verified Firebase UID

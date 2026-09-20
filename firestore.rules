@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.email == 'alokb7837@gmail.com';
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Products: Publicly readable; writable only by Admin
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Checkout Sessions: Created and managed strictly by Cloud Functions (Admin SDK).
+    // Clients can only read their own checkout session to observe status.
+    match /checkout_sessions/{sessionId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create, update, delete: if false; // Forbidden to all clients
+    }
+
+    // Orders:
+    // IMPORTANT SECURITY BOUNDARY:
+    // Zero client-side order creation!
+    // Paid orders are minted exclusively by the server (Cloud Functions via Admin SDK).
+    // Users can read their own orders; Admin can read, update, or delete orders.
+    match /orders/{orderId} {
+      allow read: if (isAuthenticated() && resource.data.userId == request.auth.uid) || isAdmin();
+      allow create: if false; // Denied to all clients! Must be minted by Cloud Functions
+      allow update, delete: if isAdmin();
+    }
+
+    // Notifications:
+    // Users can read, update (mark read), and delete their own notifications.
+    // Client-side paid order notifications are forbidden; official order notifications come from server.
+    match /notifications/{notificationId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isAdmin() || (isAuthenticated() && request.resource.data.userId == request.auth.uid && !request.resource.data.text.matches('.*([Oo]rder|[Pp]ayment|[Vv]erified).*'));
+    }
+
+    // Reviews, wishlist, user profiles:
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update, delete: if (isAuthenticated() && resource.data.userId == request.auth.uid) || isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    match /wishlists/{wishlistId} {
+      allow read, write: if (isAuthenticated() && resource.data.userId == request.auth.uid) || isAdmin();
+    }
+
+    // Default fallback
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

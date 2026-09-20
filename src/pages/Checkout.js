@@ -1,9 +1,8 @@
 import { cartStore } from '../store/cartStore.js';
 import { authStore } from '../store/authStore.js';
 import { db, functions } from '../services/firebase.js';
-import { collection, addDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { notificationStore } from '../store/notificationStore.js';
 import { settingsStore } from '../store/settingsStore.js';
 import { STRIPE_PUBLISHABLE_KEY, isStripeConfigured } from '../config/stripe.js';
 
@@ -114,7 +113,7 @@ export function Checkout() {
           <span>₹${total.toFixed(2)}</span>
         </div>
         <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--color-text-muted); line-height: 1.4;">
-          🛡️ <em>Prices are cryptographically verified by Firebase Cloud Functions before payment processing.</em>
+          🛡️ <em>Prices are cryptographically verified by Firebase Cloud Functions. Orders are fulfilled server-side via verified Stripe webhooks.</em>
         </p>
       </div>
 
@@ -175,39 +174,59 @@ export function initCheckout() {
     const originalText = btn.textContent;
     
     try {
-      btn.textContent = '🔒 Verifying order with server...';
-      btn.disabled = true;
       if (cardErrors) cardErrors.textContent = '';
 
-      // Prepare items payload with productId and quantity
+      // Validate shipping address
+      const shippingDetails = {
+        fullName: document.getElementById('ship-name').value.trim(),
+        phone: document.getElementById('ship-phone').value.trim(),
+        address: document.getElementById('ship-address').value.trim(),
+        city: document.getElementById('ship-city').value.trim(),
+        zipCode: document.getElementById('ship-zip').value.trim()
+      };
+
+      if (!shippingDetails.fullName || !shippingDetails.phone || !shippingDetails.address || !shippingDetails.city || !shippingDetails.zipCode) {
+        alert("Please complete all shipping address fields.");
+        return;
+      }
+
+      // Check items
       const buyNowData = sessionStorage.getItem('buyNowItem');
       const items = buyNowData ? [JSON.parse(buyNowData)] : (cartStore.items || []);
-      
+      if (items.length === 0) {
+        alert("Your cart is empty.");
+        return;
+      }
+
+      btn.textContent = '🔒 Securing checkout session...';
+      btn.disabled = true;
+
       const payloadItems = items.map(item => ({
         productId: item.id || item.productId,
         quantity: item.quantity
       }));
 
-      // STEP 1: Call the trusted Firebase Cloud Function to verify prices & create PaymentIntent
+      // STEP 1: Call trusted Cloud Function to verify prices and store checkout session
       const prepareCheckoutFn = httpsCallable(functions, 'prepareCheckout');
-      const result = await prepareCheckoutFn({ items: payloadItems });
-      const checkoutResult = result.data;
+      const result = await prepareCheckoutFn({
+        items: payloadItems,
+        shippingDetails: shippingDetails
+      });
+      const session = result.data;
 
-      if (!checkoutResult || !checkoutResult.success) {
-        throw new Error("Server failed to authorize checkout total.");
+      if (!session || !session.success) {
+        throw new Error("Server failed to authorize checkout session.");
       }
 
-      btn.textContent = '💳 Processing payment...';
+      btn.textContent = '💳 Authorizing payment...';
 
-      // STEP 2: Process payment with Stripe
-      let paymentIntentId = checkoutResult.clientSecret;
-
-      if (stripe && cardElement && !checkoutResult.isMock) {
-        const { error, paymentIntent } = await stripe.confirmCardPayment(checkoutResult.clientSecret, {
+      // STEP 2: Process payment with Stripe Test Mode
+      if (stripe && cardElement && !session.isMock) {
+        const { error, paymentIntent } = await stripe.confirmCardPayment(session.clientSecret, {
           payment_method: {
             card: cardElement,
             billing_details: {
-              name: document.getElementById('ship-name').value,
+              name: shippingDetails.fullName,
               email: authStore.user.email
             }
           }
@@ -216,61 +235,68 @@ export function initCheckout() {
         if (error) {
           throw new Error(error.message);
         }
-        paymentIntentId = paymentIntent.id;
-      } else {
-        // Mock payment processing delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      } else if (session.isMock) {
+        // Local mock simulation
+        await new Promise(resolve => setTimeout(resolve, 800));
+        const mockFulfill = httpsCallable(functions, 'simulateMockFulfillment');
+        await mockFulfill({ checkoutSessionId: session.checkoutSessionId });
       }
 
-      // STEP 3: Record verified order in Firestore
-      btn.textContent = '📦 Finalizing order...';
+      // STEP 3: ASYNCHRONOUS SERVER FULFILLMENT OBSERVATION
+      // Notice: The browser does NOT call addDoc() or create the order!
+      // The browser waits for the trusted backend fulfillment.
+      btn.textContent = '⏳ Payment received — confirming your order...';
 
-      const orderData = {
-        userId: authStore.user.uid,
-        email: authStore.user.email,
-        items: items,
-        totalAmount: checkoutResult.total, // Server-calculated true amount!
-        subtotal: checkoutResult.subtotal,
-        itemCount: checkoutResult.itemCount,
-        currency: checkoutResult.currency || 'INR',
-        status: 'paid', // Verified paid!
-        paymentMethod: 'stripe_test',
-        paymentIntentId: paymentIntentId,
-        createdAt: new Date().toISOString(),
-        shippingDetails: {
-          fullName: document.getElementById('ship-name').value,
-          phone: document.getElementById('ship-phone').value,
-          address: document.getElementById('ship-address').value,
-          city: document.getElementById('ship-city').value,
-          zipCode: document.getElementById('ship-zip').value
+      // Save shipping address for user convenience
+      localStorage.setItem('pantheon_address', JSON.stringify(shippingDetails));
+
+      const orderDocRef = doc(db, "orders", session.paymentIntentId);
+      let isOrderConfirmed = false;
+
+      const unsubscribe = onSnapshot(orderDocRef, (orderSnap) => {
+        if (orderSnap.exists() && !isOrderConfirmed) {
+          isOrderConfirmed = true;
+          unsubscribe();
+          clearTimeout(fallbackTimer);
+
+          btn.textContent = '🎉 Order Confirmed!';
+
+          // Clear cart only after server verification is confirmed
+          if (buyNowData) {
+            sessionStorage.removeItem('buyNowItem');
+          } else {
+            cartStore.clearCart();
+          }
+
+          setTimeout(() => {
+            window.location.hash = '#/profile/orders';
+          }, 1500);
         }
-      };
+      }, (listenErr) => {
+        console.warn("Order listener notice:", listenErr);
+      });
 
-      // Save shipping address for future checkout sessions
-      localStorage.setItem('pantheon_address', JSON.stringify(orderData.shippingDetails));
-
-      await addDoc(collection(db, "orders"), orderData);
-      
-      // Clear cart or buyNow override
-      if (buyNowData) {
-        sessionStorage.removeItem('buyNowItem');
-      } else {
-        cartStore.clearCart();
-      }
-      
-      // Success notification
-      notificationStore.addNotification('🎉 Payment successful & order placed! Check your profile for details.', 'success');
-      
-      setTimeout(() => {
-        window.location.hash = '#/profile/orders';
-      }, 1500);
+      // Graceful timeout handler in case of network latency
+      const fallbackTimer = setTimeout(() => {
+        if (!isOrderConfirmed) {
+          unsubscribe();
+          if (buyNowData) {
+            sessionStorage.removeItem('buyNowItem');
+          } else {
+            cartStore.clearCart();
+          }
+          btn.textContent = '📦 Order in Progress';
+          alert("Payment received! Your order is being finalized by our servers and will appear in your order history shortly.");
+          window.location.hash = '#/profile/orders';
+        }
+      }, 15000);
 
     } catch (error) {
       console.error("Checkout error:", error);
       if (cardErrors) {
         cardErrors.textContent = error.message;
       } else {
-        alert("Checkout failed: " + error.message);
+        alert("Checkout error: " + error.message);
       }
       btn.textContent = originalText;
       btn.disabled = false;

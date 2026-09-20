@@ -20,14 +20,18 @@ prepareCheckout (Firebase Cloud Function)
         ↓  [Server queries Firestore authoritative prices]
 True Cart Total Calculated (Server-side)
         ↓
-Stripe TEST PaymentIntent Created (INR in Paise)
-        ↓  [Returns client_secret]
+checkout_sessions Created (Firestore: 'checkout_sessions/{id}')
+        ↓
+Stripe TEST PaymentIntent Created (INR in Paise, metadata: checkoutSessionId)
+        ↓  [Returns client_secret & checkoutSessionId]
 Stripe Elements Mounted in Browser (Test Card: 4242...)
         ↓  [Customer confirms payment]
 Stripe TEST Processing
         ↓  [Cryptographically signed HTTPS POST]
 stripeWebhook (Firebase Cloud Function)
         ↓  [Constructs event & verifies Stripe signature with whsec_...]
+Read Trusted checkout_sessions Record & Verify Amount/Currency
+        ↓
 Idempotency Verified (via payment_intent.id)
         ↓
 Order Minted in Cloud Firestore ('orders/{payment_intent.id}')
